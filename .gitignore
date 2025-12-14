@@ -1,13 +1,39 @@
-# Python cache files
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
-
-# Temporary files
+*.pyd
 *.log
-*.tmp
-*.swp
+*.env
+venv/
+env/
+.env/
+*.sqlite3
 
-# OS generated files
+# Ktor / Kotlin / Gradle Build folders
+**/build/
+**/out/
+.gradle/
+.gradle-cache/
+.gradle-wrapper/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS generated
 .DS_Store
 Thumbs.db
+
+# Docker
+*.dockerfile
+docker-compose.override.yml
+
+# Misc temp
+*.swp
+*.tmp
+*.bak
+*.orig
