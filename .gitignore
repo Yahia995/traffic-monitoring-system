@@ -1,0 +1,13 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
