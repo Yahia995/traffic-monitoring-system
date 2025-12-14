@@ -1,0 +1,24 @@
+# === Core Framework ===
+fastapi==0.109.0
+uvicorn[standard]==0.24.0
+
+# === Computer Vision ===
+numpy==1.24.3
+Pillow==10.1.0
+
+# TIP: headless to save space in Docker and avoid unnecessary GUI dependencies
+opencv-python-headless==4.6.0.66 
+
+# === YOLO ===
+torch==2.5.1
+ultralytics==8.0.220
+
+# === OCR ===
+easyocr==1.7.1
+
+# === PaddleOCR (+ PaddlePaddle) ===
+paddlepaddle==2.6.2
+paddleocr==2.7.2
+
+# === Utils ===
+python-multipart==0.0.6
