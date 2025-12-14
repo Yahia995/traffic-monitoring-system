@@ -1,7 +1,11 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, CORSMiddleware
+from fastapi import FastAPI, UploadFile, File, HTTPException, middleware
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import cv2
 import tempfile
+import logging
+import time
+
 
 from detectors.vehicle_detector import VehicleDetector
 from detectors.plate_detector import PlateDetector
@@ -24,17 +28,41 @@ vehicle_detector = VehicleDetector()
 plate_detector = PlateDetector()
 tracker = CentroidTracker()
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
+logger = logging.getLogger("ai-service")
+logger.setLevel(logging.DEBUG)
+logger.propagate = True
+
+
 @app.get("/api/health")
 def health_check():
     return {"status": "OK"}
 
 @app.post("/api/process-video")
 async def process_video(video : UploadFile = File()):
+
+    start_time = time.time()
+
+    logger.info(
+        "▶ Received video upload: filename=%s content_type=%s",
+        video.filename,
+        video.content_type
+    )
+
     # Validate video format
     if not video.filename.endswith(ALLOWED_EXT):
+        logger.warning(
+            "❌ Invalid video format: %s (allowed=%s)",
+            video.filename,
+            ALLOWED_EXT
+        )
         raise HTTPException(400, "Invalid video format")
     
     # Save uploaded video to a temporary file
+    size_mb = video.size
     suffix = Path(video.filename).suffix
     tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
     while True:
@@ -45,6 +73,14 @@ async def process_video(video : UploadFile = File()):
 
         tmp.write(chunk)
     tmp.close()
+
+    size_mb = round(size_mb / 1024 / 1024, 2)
+
+    logger.info(
+        "💾 Video saved to %s (%.2f MB)",
+        tmp.name,
+        size_mb
+    )
 
     # Process video frames
     cap = cv2.VideoCapture(tmp.name)
@@ -65,15 +101,18 @@ async def process_video(video : UploadFile = File()):
         if FRAME_SKIP > 0 and frame_id % (FRAME_SKIP + 1) == 0:
             continue
 
-        print(f"Processing frame {frame_id}")
-
         # Detect vehicles in the frame
         rects = vehicle_detector.detect(frame) # rects = [(x1, y1, x2, y2), ...]
 
         # Update tracker with detected bounding boxes
         vehicles = tracker.update(rects) # vehicles = {vehicle_id: (x1, y1, x2, y2), ...}
 
-        print(f"Tracked {len(vehicles)} vehicles -> IDs: {list(vehicles.keys())}")
+        logger.debug(
+            "Frame %d → detected=%d tracked=%d",
+            frame_id,
+            len(rects),
+            len(vehicles)
+        )
 
         # Update tracked vehicles information
         for vehicle_id, bbox in vehicles.items():
@@ -122,6 +161,15 @@ async def process_video(video : UploadFile = File()):
                     "speed_limit": SPEED_LIMIT,
                     "timestamp": info["first_frame"] / fps
                 }
+
+    elapsed = time.time() - start_time
+
+    logger.info(
+        "📤 Processed video '%s' → violations=%d in %.2fs",
+        video.filename,
+        len(violations),
+        elapsed
+    )
     
     return {
         "violations_nbr": len(violations),       
