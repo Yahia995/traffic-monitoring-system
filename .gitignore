@@ -1,39 +1,40 @@
+# Node / React / Vite
+node_modules/
+dist/
+dist-ssr/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env
+.env.*
+
+# Vite
+.vite/
+
 # Python
 __pycache__/
 *.py[cod]
 *.pyo
-*.pyd
-*.log
-*.env
+.venv/
 venv/
 env/
-.env/
-*.sqlite3
+ENV/
+pip-wheel-metadata/
+.pytest_cache/
 
-# Ktor / Kotlin / Gradle Build folders
-**/build/
-**/out/
+# Ktor / Kotlin / Gradle
 .gradle/
-.gradle-cache/
-.gradle-wrapper/
-!gradle/wrapper/gradle-wrapper.jar
+build/
+out/
+*.class
+*.jar
 
-# IntelliJ / JetBrains
+# IntelliJ IDEA
 .idea/
 *.iml
-*.iws
-*.ipr
 
-# OS generated
+# OS
 .DS_Store
 Thumbs.db
-
-# Docker
-*.dockerfile
-docker-compose.override.yml
-
-# Misc temp
-*.swp
-*.tmp
-*.bak
-*.orig

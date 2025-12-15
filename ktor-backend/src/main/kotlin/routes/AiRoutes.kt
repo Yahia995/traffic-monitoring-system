@@ -10,7 +10,7 @@ import io.ktor.server.routing.*
 
 fun Route.aiRoutes(aiClient: AiClient) {
 
-    post("/ai/analyze") {
+    post("/api/upload-video") {
 
         val part = call.receiveMultipart()
             .readAllParts()

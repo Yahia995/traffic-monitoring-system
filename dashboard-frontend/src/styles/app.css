@@ -1,0 +1,18 @@
+.container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.error {
+  color: red;
+}
