@@ -8,7 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 
 fun Route.healthRoutes() {
-    get("/health") {
+    get("/api/health") {
         call.respond(HttpStatusCode.OK, HealthResponse("OK"))
     }
 }

@@ -8,20 +8,18 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.io.Closeable
-import kotlin.system.measureTimeMillis
 
-class AiClient(
+class AIClient(
     private val endpoint: String,
     private val timeoutMs: Long = 10 * 60 * 1000
 ) : Closeable {
 
-    private val log = LoggerFactory.getLogger(AiClient::class.java)
+    private val log = LoggerFactory.getLogger(AIClient::class.java)
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -30,7 +28,7 @@ class AiClient(
     private val client = HttpClient(Apache) {
 
         install(ContentNegotiation) {
-            json(this@AiClient.json)
+            json(this@AIClient.json)
         }
 
         install(HttpTimeout) {

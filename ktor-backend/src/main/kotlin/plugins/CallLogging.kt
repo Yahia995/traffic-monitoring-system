@@ -12,7 +12,7 @@ fun Application.configureCallLogging() {
 
         filter { call ->
             // ignore health checks
-            call.request.path() != "/health"
+            call.request.path() != "/api/health"
         }
     }
 }

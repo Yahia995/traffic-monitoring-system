@@ -1,6 +1,6 @@
 package com.traffic
 
-import com.traffic.client.AiClient
+import com.traffic.client.AIClient
 import com.traffic.plugins.configureCallLogging
 import com.traffic.plugins.configureCors
 import com.traffic.plugins.configureRouting
@@ -14,7 +14,7 @@ fun main(args: Array<String>) = EngineMain.main(args)
 
 fun Application.module() {
 
-    val aiClient = AiClient(
+    val aiClient = AIClient(
         environment.config.property("ktor.ai.endpoint").getString()
     )
 
