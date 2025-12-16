@@ -141,7 +141,7 @@ Centralized in `utils/config.py`:
 ### 1. Health Check
 Checks if the service is running.
 
-* **URL**: `/api/health`
+* **URL**: `/health`
 * **Method**: `GET`
 * **Response**:
 ```json

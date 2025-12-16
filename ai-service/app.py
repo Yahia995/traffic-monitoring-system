@@ -37,7 +37,7 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = True
 
 
-@app.get("/api/health")
+@app.get("/health")
 def health_check():
     return {"status": "OK"}
 

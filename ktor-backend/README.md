@@ -126,7 +126,7 @@ ktor {
 ### ✅ Health Check
 
 ```bash
-GET /api/health
+GET /health
 ```
 
 **Response:**
@@ -353,7 +353,7 @@ INFO  [AiClient] AI processing completed in 45.3s
 
 **Health Check:**
 ```bash
-curl http://localhost:8080/api/health
+curl http://localhost:8080/health
 ```
 
 **Upload Video:**
