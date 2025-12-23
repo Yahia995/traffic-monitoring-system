@@ -3,7 +3,7 @@ package com.traffic.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AiResponse(
+data class AIResponse(
     val violations_nbr: Int,
     val violations: Map<String, Violation>,
     val details: Map<String, VehicleDetails>

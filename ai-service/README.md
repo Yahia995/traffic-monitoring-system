@@ -199,13 +199,7 @@ Upload a video file for analysis.
 
 ---
 
-## ⚡ Quick Start (Local)
-
-### Prerequisites
-* Python 3.10.12
-* Virtual Environment (Recommended)
-
-### Installation
+### Local Setup (CPU-only PyTorch)
 
 ```bash
 # 1. Clone the repository
@@ -221,9 +215,12 @@ source venv/bin/activate
 # Windows:
 venv\Scripts\activate
 
-# 4. Install dependencies
+# 4. Install CPU-only PyTorch first
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+
+# 5. Install remaining dependencies
 pip install -r requirements.txt
-```
+````
 
 ### Running the Server
 
@@ -232,11 +229,39 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
 ### Accessing Documentation
+
 Once running, open your browser to view the interactive Swagger UI:
 
 ```
 http://localhost:8000/docs
 ```
+
+---
+
+## 🐳 Docker (CPU-only)
+
+You can containerize the application for easy deployment.
+
+> ⚠️ **Note:** PyTorch CPU-only wheels must be installed explicitly to avoid downloading large CUDA packages.
+
+```bash
+# Build the image
+docker build -t traffic-ai-service .
+
+# Run the container
+docker run -p 8000:8000 traffic-ai-service
+```
+
+> Inside Docker, ensure `torch` is installed from the CPU-only index:
+>
+> ```dockerfile
+> RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+> ```
+
+This ensures both **local setup and Docker builds** use CPU-only PyTorch, avoiding unnecessary CUDA downloads and large wheel files.
+
+---
+
 
 ## 🚀 Future Improvements
 

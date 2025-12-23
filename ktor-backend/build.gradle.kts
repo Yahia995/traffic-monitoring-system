@@ -10,7 +10,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.example.ApplicationKt")
+    mainClass.set("com.traffic.ApplicationKt")
 }
 
 repositories {

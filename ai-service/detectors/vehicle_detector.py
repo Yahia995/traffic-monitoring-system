@@ -1,12 +1,19 @@
 from ultralytics import YOLO
 from utils.config import VEHICLE_MODEL_PATH
+import torch
 
 # vehicle class IDs based on COCO dataset
 VEHICLE_CLASSES = [2, 3, 5, 7] # car, motorcycle, bus, truck
 
 class VehicleDetector:
     def __init__(self):
+         # Allow Ultralytics model deserialization
+        torch.serialization.add_safe_globals([
+            torch.nn.Module
+        ])
+
         self.model = YOLO(VEHICLE_MODEL_PATH) # load YOLO model
+        self.model.to("cpu") # move model to CPU
 
     def detect(self, frame):
         results = self.model(

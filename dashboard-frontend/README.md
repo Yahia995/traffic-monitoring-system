@@ -190,6 +190,55 @@ npm run preview
 The build output will be in the `dist/` directory.
 
 ---
+Here’s a clean **“Running the Frontend in Docker”** section you can add directly to your README:
+
+````md
+## 🐳 Docker — Frontend (React)
+
+You can containerize the frontend dashboard for easy deployment.  
+Make sure the Ktor backend is reachable (e.g., via `host.docker.internal`).
+
+### 1️⃣ Set environment variable
+
+Create a `.env` file in the frontend root for local development:
+
+```env
+VITE_API_BASE=http://localhost:8080
+````
+
+When running in Docker, override this variable.
+
+---
+
+### 2️⃣ Build Docker image
+
+From the `dashboard-frontend/` directory:
+
+```bash
+docker build -t traffic-dashboard-frontend .
+```
+
+---
+
+### 3️⃣ Run container
+
+```bash
+docker run -p 5173:5173 \
+  -e VITE_API_BASE=http://host.docker.internal:8080 \
+  traffic-dashboard-frontend
+```
+
+* `host.docker.internal` allows the frontend container to reach your Ktor backend running on the host.
+* After starting, open your browser: [http://localhost:5173](http://localhost:5173)
+
+---
+
+### 4️⃣ Notes
+
+* For local dev: `VITE_API_BASE=http://localhost:8080` works without Docker.
+* In a multi-container setup, you can point `VITE_API_BASE` to the **backend container name** instead of `host.docker.internal`.
+
+---
 
 ## 🧪 Testing
 

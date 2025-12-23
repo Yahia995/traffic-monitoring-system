@@ -1,6 +1,6 @@
 package com.traffic.client
 
-import com.traffic.models.AiResponse
+import com.traffic.models.AIResponse
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.engine.apache.*
@@ -53,7 +53,7 @@ class AIClient(
     suspend fun analyzeVideo(
         fileBytes: ByteArray,
         fileName: String = "video.mp4"
-    ): AiResponse {
+    ): AIResponse {
 
         val sizeMb = fileBytes.size / 1024.0 / 1024.0
 

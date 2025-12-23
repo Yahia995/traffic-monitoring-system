@@ -1,0 +1,30 @@
+services:
+
+  traffic-ai-service:
+    build: ./ai-service
+    container_name: traffic-ai-service
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  traffic-ktor-backend:
+    build: ./ktor-backend
+    container_name: traffic-ktor-backend
+    ports:
+      - "8080:8080"
+    environment:
+      KTOR_AI_ENDPOINT: http://traffic-ai-service:8000/api/process-video
+    depends_on:
+      - traffic-ai-service
+    restart: unless-stopped
+
+  traffic-frontend:
+    build: ./dashboard-frontend
+    container_name: traffic-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - traffic-ktor-backend
+    environment:
+      VITE_API_BASE: http://traffic-ktor-backend:8080
+    restart: unless-stopped

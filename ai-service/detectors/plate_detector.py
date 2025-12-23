@@ -1,9 +1,16 @@
 from ultralytics import YOLO
 from utils.config import PLATE_MODEL_PATH
+import torch
 
 class PlateDetector:
     def __init__(self):
+         # Allow Ultralytics model deserialization
+        torch.serialization.add_safe_globals([
+            torch.nn.Module
+        ])
+
         self.model = YOLO(PLATE_MODEL_PATH) # load YOLO model for plate detection
+        self.model.to("cpu")
 
     def detect(self, vehicle_crop):
         results = self.model(

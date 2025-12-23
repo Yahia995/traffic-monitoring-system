@@ -259,6 +259,22 @@ http://localhost:8080/swagger
 
 ---
 
+## 🐳 Docker
+
+You can containerize the Ktor backend for easy deployment.
+
+```bash
+# Build the image
+docker build -t traffic-ktor-backend .
+
+# Run the container
+docker run -p 8080:8080 \
+  -e KTOR_AI_ENDPOINT=http://host.docker.internal:8000/api/process-video \
+  traffic-ktor-backend
+```
+
+---
+
 ## 🚀 Future Enhancements
 
 - [ ] **PostgreSQL integration**
