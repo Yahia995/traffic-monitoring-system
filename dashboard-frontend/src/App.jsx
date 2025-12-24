@@ -14,13 +14,13 @@ export default function App() {
 
       {data && (
         <>
-          <h2>ViolationsTable ({data.violations_nbr})</h2>
+          <h2>Violations ({data.summary.violations_detected})</h2>
+          <p>
+            Tracked: {data.summary.total_vehicles_tracked} vehicles | 
+            Plates detected: {data.summary.vehicles_with_plates} | 
+            Processing time: {data.processing_time_seconds}s
+          </p>
           <ViolationsTable violations={data.violations} />
-
-          <details>
-            <summary>Raw JSON</summary>
-            <pre>{JSON.stringify(data, null, 2)}</pre>
-          </details>
         </>
       )}
     </div>

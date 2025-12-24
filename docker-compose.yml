@@ -5,6 +5,8 @@ services:
     container_name: traffic-ai-service
     ports:
       - "8000:8000"
+    env_file:
+      - ./ai-service/.env
     restart: unless-stopped
 
   traffic-ktor-backend:

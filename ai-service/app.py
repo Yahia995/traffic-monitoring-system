@@ -1,21 +1,31 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, middleware
+"""
+Enhanced AI-Service FastAPI Application
+Version 1.5 - Improved response format and OCR
+"""
+
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import cv2
 import tempfile
 import logging
 import time
-
+from typing import Dict, List, Optional
 
 from detectors.vehicle_detector import VehicleDetector
 from detectors.plate_detector import PlateDetector
 from tracker.centroid_tracker import CentroidTracker
-from ocr.ocr_reader import plate_text
+from ocr.ocr_reader import read_plate_enhanced, multi_pass_ocr, OCRResult
 from utils.config import *
 from utils.pre_process import safe_crop
 from utils.speed_estimator import calculate_speed
 
-app = FastAPI(title="AI Traffic Detection MVP")
+# Application Setup
+app = FastAPI(
+    title="AI Traffic Detection Service",
+    version="1.5.0",
+    description="Enhanced traffic violation detection with improved OCR and response format"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,155 +34,409 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-vehicle_detector = VehicleDetector()
-plate_detector = PlateDetector()
-tracker = CentroidTracker()
-
+# Logging Setup
 logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-8s | %(name)-15s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
 logger = logging.getLogger("ai-service")
 logger.setLevel(logging.DEBUG)
 logger.propagate = True
 
+# Initialize Models
+vehicle_detector = VehicleDetector()
+plate_detector = PlateDetector()
+tracker = CentroidTracker()
 
+# Validate and log configuration
+config_valid, config_errors = validate_configuration()
+if not config_valid:
+    logger.error("Configuration validation failed:")
+    for error in config_errors:
+        logger.error(f"  - {error}")
+    raise RuntimeError("Invalid configuration")
+
+log_configuration(logger)
+
+
+# Helper Functions
+def sample_trajectory(positions: List[tuple], sampling_rate: int) -> List[Dict]:
+    """Sample trajectory points for compact response"""
+    if not INCLUDE_TRAJECTORY:
+        return []
+    
+    sampled = []
+    for i, (frame, pos) in enumerate(positions):
+        if i % sampling_rate == 0 or i == len(positions) - 1:
+            sampled.append({
+                "frame": frame,
+                "x": pos[0],
+                "y": pos[1]
+            })
+    
+    return sampled
+
+
+def calculate_trajectory_length(positions: List[tuple]) -> float:
+    """Calculate total trajectory length in pixels"""
+    if len(positions) < 2:
+        return 0.0
+    
+    total_distance = 0.0
+    for i in range(1, len(positions)):
+        x1, y1 = positions[i-1][1]
+        x2, y2 = positions[i][1]
+        distance = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+        total_distance += distance
+    
+    return round(total_distance, 2)
+
+
+def build_violation_record(
+    violation_id: str,
+    plate_info: Dict,
+    speed_kmh: float,
+    timestamp_seconds: float,
+    frame_number: int
+) -> Dict:
+    """Build a violation record in the new format"""
+    overspeed = round(speed_kmh - SPEED_LIMIT, 2)
+    severity = get_violation_severity(overspeed)
+    
+    return {
+        "violation_id": violation_id,
+        "plate_number": plate_info["plate_number"],
+        "plate_confidence": plate_info["confidence"],
+        "plate_validated": plate_info["validated"],
+        "speed_kmh": speed_kmh,
+        "speed_limit_kmh": SPEED_LIMIT,
+        "overspeed_kmh": overspeed,
+        "timestamp_seconds": round(timestamp_seconds, 2),
+        "frame_number": frame_number,
+        "severity": severity
+    }
+
+
+def build_vehicle_record(
+    vehicle_id: str,
+    tracked_info: Dict,
+    ocr_result: Optional[OCRResult],
+    speed_kmh: float,
+    fps: float
+) -> Dict:
+    """Build a tracked vehicle record in the new format"""
+    
+    first_frame = tracked_info["first_frame"]
+    last_frame = tracked_info["last_frame"]
+    positions_with_frames = [
+        (first_frame + i, pos) 
+        for i, pos in enumerate(tracked_info["positions"])
+    ]
+    
+    trajectory_length = calculate_trajectory_length(positions_with_frames)
+    
+    # Build vehicle record
+    vehicle = {
+        "vehicle_id": vehicle_id,
+        "tracking_info": {
+            "first_frame": first_frame,
+            "last_frame": last_frame,
+            "frames_tracked": last_frame - first_frame + 1,
+            "trajectory_length_pixels": trajectory_length
+        },
+        "speed_info": {
+            "speed_kmh": speed_kmh,
+            "is_violation": speed_kmh > SPEED_LIMIT,
+            "calculation_valid": len(tracked_info["positions"]) >= MIN_TRACKED_FRAMES
+        }
+    }
+    
+    # Add plate information
+    if ocr_result:
+        vehicle["plate_info"] = ocr_result.to_dict()
+        vehicle["plate_info"]["detection_frame"] = tracked_info.get("plate_detected_frame")
+    else:
+        vehicle["plate_info"] = {
+            "plate_number": None,
+            "raw_ocr_text": "",
+            "confidence": 0.0,
+            "validated": False,
+            "validation_errors": ["not_detected"]
+        }
+    
+    # Add sampled trajectory
+    if INCLUDE_TRAJECTORY:
+        vehicle["positions"] = sample_trajectory(
+            positions_with_frames,
+            TRAJECTORY_SAMPLING
+        )
+    
+    return vehicle
+
+
+# API Endpoints
 @app.get("/health")
 def health_check():
-    return {"status": "OK"}
+    """Health check endpoint"""
+    return {
+        "status": "OK",
+        "version": "1.5.0",
+        "config_valid": config_valid
+    }
+
+
+@app.get("/config")
+def get_configuration():
+    """Get current configuration"""
+    return get_config_dict()
+
 
 @app.post("/api/process-video")
-async def process_video(video : UploadFile = File()):
-
+async def process_video(video: UploadFile = File(...)):
+    """
+    Process traffic video and detect violations
+    
+    Enhanced v1.5 features:
+    - Improved OCR with validation
+    - Better response format
+    - Confidence tracking
+    - Multi-pass OCR option
+    """
+    
     start_time = time.time()
-
+    
     logger.info(
-        "▶ Received video upload: filename=%s content_type=%s",
+        "▶ Received video: filename='%s' content_type='%s'",
         video.filename,
         video.content_type
     )
-
+    
     # Validate video format
     if not video.filename.endswith(ALLOWED_EXT):
         logger.warning(
-            "❌ Invalid video format: %s (allowed=%s)",
+            "❌ Invalid format: '%s' (allowed: %s)",
             video.filename,
             ALLOWED_EXT
         )
-        raise HTTPException(400, "Invalid video format")
+        raise HTTPException(400, f"Invalid video format. Allowed: {ALLOWED_EXT}")
     
-    # Save uploaded video to a temporary file
-    size_mb = video.size
+    # Save uploaded video
     suffix = Path(video.filename).suffix
     tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    
+    file_size = 0
     while True:
-        chunk = video.file.read(1024 ** 2)
-
+        chunk = video.file.read(1024 ** 2)  # 1MB chunks
         if not chunk:
             break
-
         tmp.write(chunk)
+        file_size += len(chunk)
+    
     tmp.close()
-
-    size_mb = round(size_mb / 1024 / 1024, 2)
-
-    logger.info(
-        "💾 Video saved to %s (%.2f MB)",
-        tmp.name,
-        size_mb
-    )
-
-    # Process video frames
+    size_mb = round(file_size / 1024 / 1024, 2)
+    
+    logger.info("💾 Saved to '%s' (%.2f MB)", tmp.name, size_mb)
+    
+    # Open video
     cap = cv2.VideoCapture(tmp.name)
-
-
-    frame_id = 0 # Frame counter
-    fps = cap.get(cv2.CAP_PROP_FPS) # Video frames per second
-    tracked = {} # vehicle_id : {first_frame, last_frame, positions[(cX, cY), ...], plate}
-
-    # Read frames from video
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    duration = total_frames / fps if fps > 0 else 0
+    
+    logger.info(
+        "📹 Video info: fps=%.1f total_frames=%d duration=%.1fs",
+        fps, total_frames, duration
+    )
+    
+    # Processing state
+    frame_id = 0
+    processed_frames = 0
+    tracked = {}  # vehicle_id -> tracking info
+    ocr_results = {}  # vehicle_id -> OCRResult
+    
+    # Process frames
+    logger.info("🔄 Starting frame processing...")
+    
     while True:
-        ret , frame = cap.read() # ret indicates if frame is read correctly
+        ret, frame = cap.read()
         if not ret:
             break
-
-        frame_id += 1 # Increment frame counter
-
-        if FRAME_SKIP > 0 and frame_id % (FRAME_SKIP + 1) == 0:
+        
+        frame_id += 1
+        
+        # Frame skipping
+        if FRAME_SKIP > 0 and frame_id % (FRAME_SKIP + 1) != 0:
             continue
-
-        # Detect vehicles in the frame
-        rects = vehicle_detector.detect(frame) # rects = [(x1, y1, x2, y2), ...]
-
-        # Update tracker with detected bounding boxes
-        vehicles = tracker.update(rects) # vehicles = {vehicle_id: (x1, y1, x2, y2), ...}
-
-        logger.debug(
-            "Frame %d → detected=%d tracked=%d",
-            frame_id,
-            len(rects),
-            len(vehicles)
-        )
-
-        # Update tracked vehicles information
+        
+        processed_frames += 1
+        
+        # Detect vehicles
+        rects = vehicle_detector.detect(frame)
+        
+        # Update tracker
+        vehicles = tracker.update(rects)
+        
+        if processed_frames % 100 == 0:
+            logger.debug(
+                "Frame %d/%d → detected=%d tracked=%d",
+                frame_id, total_frames, len(rects), len(vehicles)
+            )
+        
+        # Update tracked vehicles
         for vehicle_id, bbox in vehicles.items():
             x1, y1, x2, y2 = bbox
+            cX, cY = (x1 + x2) // 2, (y1 + y2) // 2
             
-            cX, cY = (x1 + x2) // 2, (y1 + y2) // 2 # Centroid: center of the bounding box
-
+            # Initialize tracking info
             if vehicle_id not in tracked:
-                # First time seeing this vehicle
                 tracked[vehicle_id] = {
                     "first_frame": frame_id,
                     "last_frame": frame_id,
                     "positions": [(cX, cY)],
-                    "plate": None
+                    "plate_detected_frame": None
                 }
             else:
-                # Update existing vehicle info
                 tracked[vehicle_id]["last_frame"] = frame_id
                 tracked[vehicle_id]["positions"].append((cX, cY))
-
-            if tracked[vehicle_id]["plate"] is None:
-                v_crop = safe_crop(frame,bbox)
+            
+            # Try OCR if not yet done
+            if vehicle_id not in ocr_results:
+                v_crop = safe_crop(frame, bbox)
                 if v_crop is None:
                     continue
-
+                
                 p_box = plate_detector.detect(v_crop)
                 if p_box:
-                    p_crop = safe_crop(v_crop,p_box)
+                    p_crop = safe_crop(v_crop, p_box)
                     if p_crop is not None:
-                        tracked[vehicle_id]["plate"] = plate_text(p_crop)
-
+                        # Use multi-pass OCR if enabled
+                        if OCR_MULTI_PASS:
+                            ocr_result = multi_pass_ocr(p_crop, OCR_MAX_ATTEMPTS)
+                        else:
+                            ocr_result = read_plate_enhanced(p_crop, OCR_CONFIDENCE)
+                        
+                        ocr_results[vehicle_id] = ocr_result
+                        tracked[vehicle_id]["plate_detected_frame"] = frame_id
+                        
+                        if ocr_result.plate_number:
+                            logger.debug(
+                                "🔍 Vehicle %s → Plate '%s' (conf=%.2f, valid=%s)",
+                                vehicle_id,
+                                ocr_result.plate_number,
+                                ocr_result.confidence,
+                                ocr_result.validated
+                            )
     
-    cap.release() # Release video capture object
-    Path(tmp.name).unlink()  # Delete temporary video file
-
-    violations = {}
-
+    cap.release()
+    Path(tmp.name).unlink()
+    
+    logger.info("✅ Frame processing complete")
+    
+    # Build Response
+    violations = []
+    tracked_vehicles = []
+    violation_counter = 1
+    total_speeds = []
+    
     for vehicle_id, info in tracked.items():
-        plate = info["plate"]
-        positions_nbr = len(info["positions"])
-        if plate and positions_nbr >= MIN_TRACKED_FRAMES:
-            speed = calculate_speed(info["first_frame"],info["last_frame"], info["positions"], fps)
-            if speed > SPEED_LIMIT:
-                violations[plate] = {
-                    "speed": speed,
-                    "speed_limit": SPEED_LIMIT,
-                    "timestamp": info["first_frame"] / fps
-                }
-
-    elapsed = time.time() - start_time
-
-    logger.info(
-        "📤 Processed video '%s' → violations=%d in %.2fs",
-        video.filename,
-        len(violations),
-        elapsed
+        ocr_result = ocr_results.get(vehicle_id)
+        
+        # Calculate speed
+        positions_count = len(info["positions"])
+        if positions_count >= MIN_TRACKED_FRAMES:
+            speed_kmh = calculate_speed(
+                info["first_frame"],
+                info["last_frame"],
+                info["positions"],
+                fps
+            )
+            total_speeds.append(speed_kmh)
+        else:
+            speed_kmh = 0.0
+        
+        # Build vehicle record
+        vehicle_record = build_vehicle_record(
+            f"veh_{vehicle_id:03d}",
+            info,
+            ocr_result,
+            speed_kmh,
+            fps
+        )
+        
+        tracked_vehicles.append(vehicle_record)
+        
+        # Check for violation
+        if (ocr_result and 
+            ocr_result.plate_number and 
+            positions_count >= MIN_TRACKED_FRAMES and
+            speed_kmh > SPEED_LIMIT):
+            
+            violation = build_violation_record(
+                f"v_{violation_counter:03d}",
+                vehicle_record["plate_info"],
+                speed_kmh,
+                info["first_frame"] / fps,
+                info["first_frame"]
+            )
+            
+            violations.append(violation)
+            violation_counter += 1
+    
+    # Calculate statistics
+    vehicles_with_plates = sum(
+        1 for v in tracked_vehicles 
+        if v["plate_info"]["plate_number"] is not None
     )
     
-    return {
-        "violations_nbr": len(violations),       
+    avg_speed = round(sum(total_speeds) / len(total_speeds), 2) if total_speeds else 0.0
+    
+    processing_time = time.time() - start_time
+    
+    logger.info(
+        "📤 Results: vehicles=%d plates=%d violations=%d time=%.1fs",
+        len(tracked_vehicles),
+        vehicles_with_plates,
+        len(violations),
+        processing_time
+    )
+    
+    # Build final response
+    response = {
+        "status": "success",
+        "processing_time_seconds": round(processing_time, 2),
+        "video_info": {
+            "filename": video.filename,
+            "duration_seconds": round(duration, 2),
+            "fps": round(fps, 1),
+            "total_frames": total_frames,
+            "processed_frames": processed_frames
+        },
+        "summary": {
+            "total_vehicles_tracked": len(tracked_vehicles),
+            "vehicles_with_plates": vehicles_with_plates,
+            "violations_detected": len(violations),
+            "average_speed_kmh": avg_speed
+        },
         "violations": violations,
-        "details" : tracked
+        "tracked_vehicles": tracked_vehicles,
+        "configuration": get_config_dict()
+    }
+    
+    return response
+
+
+@app.get("/")
+def root():
+    """Root endpoint with API information"""
+    return {
+        "service": "AI Traffic Detection",
+        "version": "1.5.0",
+        "status": "operational",
+        "endpoints": {
+            "health": "/health",
+            "config": "/config",
+            "process": "/api/process-video",
+            "docs": "/docs"
+        }
     }
