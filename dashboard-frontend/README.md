@@ -1,7 +1,9 @@
-# 🚦 Dashboard Frontend — Traffic Monitoring System (MVP)
+# 🚦 Dashboard Frontend — Traffic Monitoring System
 
-This module represents the **Frontend Dashboard** of the Traffic Monitoring System.  
-It provides a **simple web interface** to upload traffic videos, trigger analysis via the backend, and visualize detected traffic violations.
+**Current Version**: v1.0 (MVP) ✅  
+**Next Version**: v1.5 (Stabilization & Enhancements) 🚧
+
+This module represents the **Frontend Dashboard** of the Traffic Monitoring System. It provides a **simple web interface** to upload traffic videos, trigger analysis via the backend, and visualize detected traffic violations.
 
 The frontend is built with **React + Vite** and communicates exclusively with the **Ktor backend API**.
 
@@ -9,21 +11,26 @@ The frontend is built with **React + Vite** and communicates exclusively with th
 
 ## 🎯 Responsibilities
 
-- Provide a user interface for video upload
-- Call the backend `/api/upload-video` endpoint
-- Display detected traffic violations
-- Show raw JSON response for debugging/demo purposes
-- Serve as a demonstrable MVP dashboard
+- ✅ Provide user interface for video upload
+- ✅ Call backend `/api/upload-video` endpoint
+- ✅ Display detected traffic violations in table format
+- ✅ Show raw JSON response for debugging
+- ✅ Handle loading states and errors
+- ✅ Docker containerization
+- 📅 Authentication (v2.0)
+- 📅 Advanced filtering (v2.0)
+- 📅 Charts & statistics (v2.0)
 
 ---
 
 ## 🧱 Tech Stack
 
-- **React 19**
-- **Vite**
+- **React 19.2.0**
+- **Vite 7.2.4**
 - **JavaScript (ES Modules)**
 - **Fetch API**
 - **Plain CSS**
+- **Node.js 22 (Docker)**
 
 ---
 
@@ -32,97 +39,172 @@ The frontend is built with **React + Vite** and communicates exclusively with th
 ```text
 dashboard-frontend/
 │
-├── public/
+├── public/                               # Static assets
 │
 ├── src/
 │   ├── api/
-│   │   └── backend.js          # Backend API calls
+│   │   └── backend.js                    # Backend API calls
 │   │
 │   ├── components/
-│   │   ├── UploadForm.jsx      # Video upload form
-│   │   └── ViolationsTable.jsx # Violations table
+│   │   ├── UploadForm.jsx                # Video upload form
+│   │   └── ViolationsTable.jsx           # Violations table
 │   │
 │   ├── styles/
-│   │   └── app.css             # Global styles
+│   │   └── app.css                       # Global styles
 │   │
-│   ├── App.jsx                 # Main app component
-│   └── main.jsx                # React entry point
+│   ├── App.jsx                           # Main app component
+│   └── main.jsx                          # React entry point
 │
-├── index.html
-├── package.json
-├── vite.config.js
-└── README.md
+├── index.html                            # HTML entry
+├── package.json                          # Dependencies
+├── vite.config.js                        # Vite configuration
+├── Dockerfile                            # Docker build
+├── .dockerignore                         # Docker ignore rules
+└── README.md                             # This file
 ```
 
 ---
 
 ## 🔄 Application Flow
 
-```
-User selects video
+```text
+1. User selects video file
    ↓
-UploadForm submits file
+2. UploadForm submits to backend
    ↓
-POST /api/upload-video (Ktor Backend)
+3. POST /api/upload-video (Ktor)
    ↓
-Backend forwards video to AI-Service
+4. Backend forwards to AI-Service
    ↓
-AI analyzes video and returns JSON
+5. AI analyzes video
    ↓
-Frontend displays violations
+6. Backend returns JSON
+   ↓
+7. Frontend displays violations table
+   ↓
+8. Raw JSON available for debugging
 ```
 
 ---
 
 ## 🧩 Component Overview
 
-### 📤 UploadForm
-- Handles file selection (`video/*`)
-- Sends video using `multipart/form-data`
-- Displays loading state and errors
-- Emits AI result to parent component
+### 📤 UploadForm (`src/components/UploadForm.jsx`)
 
-### 📊 ViolationsTable
-- Displays violations in a table format
-- **Columns:**
-  - Plate number
-  - Detected speed
-  - Speed limit
-  - Timestamp
-- Handles empty violation cases
+**Purpose**: Handle video file selection and upload
 
-### 🧠 App Component
-- Holds global state (data)
-- **Renders:**
-  - Upload form
-  - Violations table
-  - Raw JSON response (expandable)
+**Features**:
+- File input with `video/*` accept filter
+- Loading state during processing
+- Error display
+- Disabled button during upload
+
+**Props**:
+- `onResult(data)`: Callback with AI results
+
+**Usage**:
+```jsx
+<UploadForm onResult={setData} />
+```
+
+---
+
+### 📊 ViolationsTable (`src/components/ViolationsTable.jsx`)
+
+**Purpose**: Display violations in tabular format
+
+**Columns**:
+- **Plate**: License plate number
+- **Speed**: Detected speed (km/h)
+- **Limit**: Configured speed limit
+- **Timestamp**: Detection time (seconds)
+
+**Props**:
+- `violations`: Object of violations by plate
+
+**Features**:
+- Empty state handling
+- Number formatting (2 decimals)
+- Responsive table layout
+
+**Usage**:
+```jsx
+<ViolationsTable violations={data.violations} />
+```
+
+---
+
+### 🧠 App Component (`src/App.jsx`)
+
+**Purpose**: Main application container
+
+**State**:
+- `data`: Stores AI analysis results
+
+**Renders**:
+1. Page title
+2. Upload form
+3. Violations count (if data exists)
+4. Violations table
+5. Expandable raw JSON view
 
 ---
 
 ## 🌐 Backend Communication
 
-All API calls are centralized in:
-```
-src/api/backend.js
+### API Configuration (`src/api/backend.js`)
+
+```javascript
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+export async function uploadVideo(file) {
+  const formData = new FormData();
+  formData.append("video", file);
+
+  const res = await fetch(`${API_BASE}/api/upload-video`, {
+    method: "POST",
+    body: formData
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+
+  return res.json();
+}
 ```
 
-### API Base URL
-```js
-const API_BASE = "http://localhost:8080";
+### Environment Variables
+
+**Development** (`.env`):
+```env
+VITE_API_BASE=http://localhost:8080
 ```
 
-### Upload Video Request
-```bash
-POST /api/upload-video
-Content-Type: multipart/form-data
-Field name: video
+**Docker**:
+```env
+VITE_API_BASE=http://traffic-ktor-backend:8080
 ```
 
 ---
 
-## 📤 Expected API Response (MVP)
+## 📤 API Request/Response
 
+### Request
+```http
+POST /api/upload-video HTTP/1.1
+Host: localhost:8080
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="video"; filename="traffic.mp4"
+Content-Type: video/mp4
+
+[binary data]
+------WebKitFormBoundary--
+```
+
+### Response
 ```json
 {
   "violations_nbr": 2,
@@ -131,6 +213,11 @@ Field name: video
       "speed": 72.4,
       "speed_limit": 50,
       "timestamp": 3.2
+    },
+    "789TUN012": {
+      "speed": 65.8,
+      "speed_limit": 50,
+      "timestamp": 8.5
     }
   },
   "details": {
@@ -146,97 +233,144 @@ Field name: video
 
 ---
 
-## 🎨 Styling
+## 🎨 Styling (`src/styles/app.css`)
 
-- Minimal CSS for MVP clarity
-- Located in `src/styles/app.css`
-- Focus on readability and simplicity
+### Current Styles
+```css
+.container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.error {
+  color: red;
+}
+```
+
+### v1.5 Improvements
+- Modern CSS framework (Tailwind)
+- Better color scheme
+- Responsive design
+- Loading animations
+- Improved error styling
 
 ---
 
-## ⚡ Run Locally
+## ⚡ Running Locally
 
-### Install dependencies
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### 1️⃣ Install Dependencies
 ```bash
+cd dashboard-frontend
 npm install
 ```
 
-### Start development server
+### 2️⃣ Configure Environment
+Create `.env` file:
+```env
+VITE_API_BASE=http://localhost:8080
+```
+
+### 3️⃣ Start Development Server
 ```bash
 npm run dev
 ```
 
-Application will be available at:
-```
-http://localhost:5173
-```
+### 4️⃣ Access Dashboard
+Open browser: **http://localhost:5173**
 
-⚠️ **Make sure the Ktor backend is running on port 8080**
+⚠️ **Ensure Ktor backend is running on port 8080**
 
 ---
 
 ## 🏗️ Build for Production
 
-### Build optimized bundle
+### 1️⃣ Build Optimized Bundle
 ```bash
 npm run build
 ```
 
-### Preview production build
+Output directory: `dist/`
+
+### 2️⃣ Preview Production Build
 ```bash
 npm run preview
 ```
 
-The build output will be in the `dist/` directory.
-
----
-Here’s a clean **“Running the Frontend in Docker”** section you can add directly to your README:
-
-````md
-## 🐳 Docker — Frontend (React)
-
-You can containerize the frontend dashboard for easy deployment.  
-Make sure the Ktor backend is reachable (e.g., via `host.docker.internal`).
-
-### 1️⃣ Set environment variable
-
-Create a `.env` file in the frontend root for local development:
-
-```env
-VITE_API_BASE=http://localhost:8080
-````
-
-When running in Docker, override this variable.
+### 3️⃣ Deploy
+Upload `dist/` contents to your web server.
 
 ---
 
-### 2️⃣ Build Docker image
+## 🐳 Running with Docker
 
-From the `dashboard-frontend/` directory:
-
+### Build Image
 ```bash
+cd dashboard-frontend
 docker build -t traffic-dashboard-frontend .
 ```
 
----
-
-### 3️⃣ Run container
-
+### Run Container
 ```bash
 docker run -p 5173:5173 \
   -e VITE_API_BASE=http://host.docker.internal:8080 \
   traffic-dashboard-frontend
 ```
 
-* `host.docker.internal` allows the frontend container to reach your Ktor backend running on the host.
-* After starting, open your browser: [http://localhost:5173](http://localhost:5173)
+### Run with Docker Compose
+```bash
+# From project root
+docker-compose up traffic-frontend
+```
 
 ---
 
-### 4️⃣ Notes
+## 🔧 Docker Configuration
 
-* For local dev: `VITE_API_BASE=http://localhost:8080` works without Docker.
-* In a multi-container setup, you can point `VITE_API_BASE` to the **backend container name** instead of `host.docker.internal`.
+### Dockerfile
+```dockerfile
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source
+COPY . .
+
+EXPOSE 5173
+
+# Run dev server with host exposed
+CMD ["npm", "run", "dev", "--", "--host"]
+```
+
+### .dockerignore
+```
+node_modules/
+dist/
+.env
+```
+
+### Why Alpine?
+- ✅ Smaller image size (~150MB vs ~1GB)
+- ✅ Faster builds
+- ✅ Better security
+- ✅ Production-ready
 
 ---
 
@@ -244,168 +378,300 @@ docker run -p 5173:5173 \
 
 ### Manual Testing Checklist
 
-- [ ] Upload a valid video file (.mp4, .avi, .mov)
-- [ ] Verify loading state appears during processing
-- [ ] Check violations table displays correctly
-- [ ] Verify error messages show when backend is down
-- [ ] Test with videos of different sizes
-- [ ] Verify raw JSON response toggle works
+**Upload Functionality**:
+- [ ] File input accepts video files
+- [ ] Button disabled during upload
+- [ ] Loading indicator shows
+- [ ] Error messages display correctly
 
-### Example Test Videos
-- Short video (30 seconds): Quick testing
-- Medium video (1-2 minutes): Normal case
-- Large video (5+ minutes): Performance testing
+**Violations Display**:
+- [ ] Table renders with correct columns
+- [ ] Speed values formatted (2 decimals)
+- [ ] Empty state shows "No violations detected"
+- [ ] Raw JSON expandable works
 
----
+**Error Handling**:
+- [ ] Network errors handled gracefully
+- [ ] Invalid file format rejected
+- [ ] Backend down error displayed
 
-## 🚧 MVP Limitations
-
-- ❌ No authentication
-- ❌ No pagination or filtering
-- ❌ No real-time updates
-- ❌ No video preview or overlays
-- ❌ No production styling
-
----
-
-## 🚀 Planned Improvements
-
-### v1.5 - Enhanced UI
-- [ ] Professional UI (Tailwind / Material UI)
-- [ ] Improved error messages
-- [ ] Loading animations
-- [ ] Responsive design improvements
-
-### v2 - Advanced Features
-- [ ] **Charts & statistics**
-- [ ] **Authentication & roles**
-- [ ] **Video playback with bounding boxes**
-- [ ] **Real-time updates via WebSockets**
-- [ ] **Filtering & history view**
-- [ ] **Export to PDF/CSV**
-- [ ] **Multi-language support**
+### Test Videos
+- **Short** (30s): Quick testing
+- **Medium** (1-2min): Normal case
+- **Large** (5+min): Performance testing
 
 ---
 
-## 📁 File Details
+## 📊 User Interface
 
-### `src/api/backend.js`
-Centralized API communication logic:
-```js
-export async function uploadVideo(videoFile) {
-  const formData = new FormData();
-  formData.append('video', videoFile);
-  
-  const response = await fetch(`${API_BASE}/api/upload-video`, {
-    method: 'POST',
-    body: formData
-  });
-  
-  return response.json();
-}
+### Current UI (MVP)
+```
+┌─────────────────────────────────────┐
+│ 🚦 Traffic Violations Dashboard    │
+│                                     │
+│ [Choose File] [Upload]              │
+│                                     │
+│ Violations (2)                      │
+│ ┌─────────┬───────┬───────┬────┐  │
+│ │ Plate   │ Speed │ Limit │Time│  │
+│ ├─────────┼───────┼───────┼────┤  │
+│ │123TUN456│ 72.40 │  50   │3.20│  │
+│ │789TUN012│ 65.80 │  50   │8.50│  │
+│ └─────────┴───────┴───────┴────┘  │
+│                                     │
+│ ▼ Raw JSON                          │
+│   { ... }                           │
+└─────────────────────────────────────┘
 ```
 
-### `src/components/UploadForm.jsx`
-Handles file selection and upload:
-```jsx
-<input 
-  type="file" 
-  accept="video/*" 
-  onChange={handleFileChange}
-/>
-<button onClick={handleUpload}>
-  Upload Video
-</button>
-```
-
-### `src/components/ViolationsTable.jsx`
-Displays violations in tabular format:
-```jsx
-<table>
-  <thead>
-    <tr>
-      <th>Plate</th>
-      <th>Speed</th>
-      <th>Limit</th>
-      <th>Time</th>
-    </tr>
-  </thead>
-  <tbody>
-    {/* Violations data */}
-  </tbody>
-</table>
-```
+### v1.5 Planned UI
+- Modern design with Tailwind CSS
+- Card-based layout
+- Color-coded severity
+- Loading skeletons
+- Toast notifications
+- Responsive mobile view
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Backend Connection Issues
+### Issue: "Failed to fetch"
+**Cause**: Backend not reachable
 
-**Problem**: "Failed to fetch" error
+**Solution**:
+```bash
+# Check backend health
+curl http://localhost:8080/health
 
-**Solutions**:
-1. Verify backend is running: `curl http://localhost:8080/health`
-2. Check CORS settings in backend
-3. Verify API_BASE URL in `backend.js`
+# Verify VITE_API_BASE
+echo $VITE_API_BASE
 
-### Video Upload Fails
+# Check CORS settings in backend
+```
 
-**Problem**: Upload returns error
+### Issue: Video upload fails
+**Cause**: Invalid format or backend error
 
-**Solutions**:
-1. Check video format (mp4, avi, mov supported)
-2. Verify file size (backend may have limits)
-3. Check browser console for detailed errors
+**Solution**:
+- Check video format (.mp4, .avi, .mov supported)
+- Verify file size (backend may have limits)
+- Check browser console for errors
+- Check backend logs
 
-### Slow Performance
+### Issue: Slow upload
+**Cause**: Large video file
 
-**Problem**: Upload takes too long
+**Solution**:
+- Use shorter test videos
+- Reduce video resolution
+- Check network speed
+- Verify AI-Service is running
 
-**Solutions**:
-1. Use shorter videos for testing
-2. Reduce video resolution
-3. Check AI service is running properly
+### Issue: Docker container won't start
+**Solution**:
+```bash
+# Check logs
+docker logs traffic-frontend
+
+# Rebuild
+docker build --no-cache -t traffic-frontend .
+
+# Check port availability
+lsof -i :5173
+```
 
 ---
 
-## 📊 Browser Support
+## 🚀 v1.5 Improvements (Coming Next)
 
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
+### UI/UX Enhancements
+- [ ] Modern CSS framework (Tailwind)
+- [ ] Professional color scheme
+- [ ] Loading animations
+- [ ] Better error messages
+- [ ] Responsive design
+- [ ] Dark mode toggle
+
+### Features
+- [ ] Drag & drop file upload
+- [ ] Video format validation
+- [ ] Upload progress indicator
+- [ ] Video preview thumbnail
+- [ ] Filter violations by speed
+- [ ] Export table to CSV
+
+### Code Quality
+- [ ] Component testing
+- [ ] Error boundary
+- [ ] Better state management
+- [ ] Code documentation
+- [ ] Accessibility improvements
+
+---
+
+## 📈 Roadmap
+
+### v1.5 — Stabilization
+- Modern UI with Tailwind
+- Better error handling
+- Improved UX
+- Code cleanup
+
+### v2.0 — Functional Complete
+- User authentication
+- Violation history
+- Charts & statistics
+- Advanced filtering
+- PDF export
+- Video playback with overlays
+
+### v3.0 — Production Ready
+- WebSocket real-time updates
+- Multi-language support
+- Admin dashboard
+- Role-based access
+- Advanced analytics
+- Mobile app (Flutter)
+
+---
+
+## 📖 Dependencies
+
+### Core Dependencies
+```json
+{
+  "react": "^19.2.0",
+  "react-dom": "^19.2.0"
+}
+```
+
+### Dev Dependencies
+```json
+{
+  "@vitejs/plugin-react": "^5.1.1",
+  "vite": "^7.2.4",
+  "eslint": "^9.39.1"
+}
+```
+
+### v2.0 Planned Dependencies
+- `tailwindcss`: Styling
+- `recharts`: Charts
+- `react-router-dom`: Routing
+- `zustand` or `redux`: State management
 
 ---
 
 ## 🔗 Integration Points
 
 ### With Backend
-- **Endpoint**: `POST http://backend:8080/api/upload-video`
+- **Base URL**: Configured via `VITE_API_BASE`
+- **Endpoint**: `POST /api/upload-video`
 - **Format**: `multipart/form-data`
 - **Field**: `video`
 
-### Expected Response
-```json
-{
-  "violations_nbr": number,
-  "violations": { ... },
-  "details": { ... }
-}
+### CORS Requirements
+Backend must allow:
+- Origin: Frontend URL
+- Methods: `GET`, `POST`
+- Headers: `Content-Type`
+
+---
+
+## 📱 Browser Support
+
+| Browser | Version | Status |
+|---------|---------|--------|
+| Chrome | 90+ | ✅ Supported |
+| Firefox | 88+ | ✅ Supported |
+| Safari | 14+ | ✅ Supported |
+| Edge | 90+ | ✅ Supported |
+| IE | Any | ❌ Not supported |
+
+---
+
+## 📝 Development Commands
+
+### Install dependencies
+```bash
+npm install
+```
+
+### Start dev server
+```bash
+npm run dev
+```
+
+### Build production
+```bash
+npm run build
+```
+
+### Preview build
+```bash
+npm run preview
+```
+
+### Lint code
+```bash
+npm run lint
 ```
 
 ---
 
-## 📝 Development Notes
+## 🎯 v1.5 Feature Breakdown
 
-### State Management
-Currently using React's `useState` for simplicity. Consider upgrading to:
-- Redux (v2)
-- Zustand (v2)
-- Context API (v1.5)
+### Priority 1 (Critical)
+1. **Tailwind CSS Integration**
+   - Install and configure Tailwind
+   - Convert existing styles
+   - Add responsive breakpoints
 
-### Code Style
-- Use functional components
-- Follow React hooks best practices
-- Keep components small and focused
-- Use meaningful variable names
+2. **Loading States**
+   - Upload progress bar
+   - Processing indicator
+   - Skeleton loaders
+
+3. **Error Handling**
+   - Toast notifications
+   - Better error messages
+   - Retry functionality
+
+### Priority 2 (Important)
+4. **File Validation**
+   - Check file size
+   - Validate format
+   - Show preview thumbnail
+
+5. **Table Enhancements**
+   - Sortable columns
+   - Severity color coding
+   - Export to CSV
+
+### Priority 3 (Nice to Have)
+6. **UX Improvements**
+   - Drag & drop upload
+   - Keyboard shortcuts
+   - Dark mode
+
+---
+
+## 🙏 Acknowledgments
+
+- **React** - UI library
+- **Vite** - Build tool
+- **Fetch API** - HTTP client
+
+---
+
+## 📞 Support
+
+For issues or questions:
+- Check [Main README](../README.md)
+- Review [Backend README](../ktor-backend/README.md)
+- Review [AI-Service README](../ai-service/README.md)
+
+---
+
+**Ready for v1.5 improvements?** Let's build a beautiful interface! 🎨
