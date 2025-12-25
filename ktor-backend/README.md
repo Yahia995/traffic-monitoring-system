@@ -1,11 +1,28 @@
 # 🚦 Ktor Backend — Traffic Monitoring System
 
-**Current Version**: v1.0 (MVP) ✅  
-**Next Version**: v1.5 (Stabilization & Enhancements) 🚧
+**Current Version**: v1.5 (Stabilization) ✅  
+**Next Version**: v2.0 (Database & Authentication) 🚧
 
-This module represents the **Backend service** of the Traffic Monitoring System. It acts as an **orchestrator** between the **AI-Service (FastAPI)** and the **Frontend Dashboard**, handling video uploads, AI communication, error management, and API exposure.
+This module represents the **Backend service** of the Traffic Monitoring System. It acts as an **orchestrator** between the **AI-Service (FastAPI)** and the **Frontend Dashboard**, handling video uploads, AI communication, error management, and API exposure with enhanced reliability and observability.
 
-The backend is built with **Ktor (Kotlin)** and follows a clean, modular architecture suitable for MVP and future scalability.
+---
+
+## 🆕 What's New in v1.5
+
+### Enhanced Features
+- ✅ **Request Correlation Tracking**: Unique IDs for tracing requests through the system
+- ✅ **Enhanced Error Handling**: User-friendly error messages with detailed context
+- ✅ **Response Validation**: Automatic consistency checks for AI responses
+- ✅ **Detailed Health Checks**: Monitor both backend and AI service status
+- ✅ **Summary Endpoint**: Quick statistics without full response
+- ✅ **Structured Logging**: Better debugging with correlation IDs and metrics
+- ✅ **Graceful Shutdown**: Proper resource cleanup on service stop
+
+### Updated Data Models
+- ✅ Migrated to v1.5 AI response format (arrays instead of objects)
+- ✅ Added confidence scores and validation status
+- ✅ Added severity classification
+- ✅ Added processing metadata and statistics
 
 ---
 
@@ -13,10 +30,11 @@ The backend is built with **Ktor (Kotlin)** and follows a clean, modular archite
 
 - ✅ Expose REST APIs for frontend consumption
 - ✅ Receive traffic videos from clients
-- ✅ Forward videos to AI-Service
-- ✅ Return AI analysis results
+- ✅ Forward videos to AI-Service with correlation tracking
+- ✅ Validate and enrich AI analysis results
 - ✅ Centralize logging and error handling
-- ✅ Provide Swagger/OpenAPI documentation
+- ✅ Provide comprehensive health monitoring
+- ✅ Serve Swagger/OpenAPI documentation
 - ✅ CORS management for frontend access
 - ✅ Docker containerization
 - 📅 Database integration (v2.0)
@@ -30,61 +48,207 @@ The backend is built with **Ktor (Kotlin)** and follows a clean, modular archite
 - **Ktor 2.3.13**
 - **Apache HTTP Client**
 - **kotlinx.serialization**
-- **Logback**
+- **Logback** (structured logging)
 - **Swagger UI (OpenAPI 3)**
 - **Gradle 8.14**
-- **Docker**
+- **Docker** (multi-stage build)
 
 ---
 
-## 🏗️ Project Structure
+## 📡 API Endpoints
 
-```text
-ktor-backend/
-│
-├── src/
-│   └── main/
-│       ├── kotlin/
-│       │   └── com/traffic/
-│       │       ├── client/
-│       │       │   └── AIClient.kt           # HTTP client to AI-Service
-│       │       │
-│       │       ├── models/
-│       │       │   ├── AIResponse.kt         # AI response models
-│       │       │   ├── HealthResponse.kt
-│       │       │   └── AIRequest.kt
-│       │       │
-│       │       ├── plugins/
-│       │       │   ├── CallLogging.kt        # Request logging
-│       │       │   ├── CORS.kt               # Cross-origin config
-│       │       │   ├── Routing.kt            # Route registration
-│       │       │   ├── Serialization.kt      # JSON config
-│       │       │   ├── StatusPages.kt        # Error handling
-│       │       │   └── Swagger.kt            # API docs
-│       │       │
-│       │       ├── routes/
-│       │       │   ├── AIRoutes.kt           # Video upload endpoint
-│       │       │   └── HealthRoutes.kt       # Health check
-│       │       │
-│       │       └── Application.kt            # Ktor entry point
-│       │
-│       └── resources/
-│           ├── application.conf              # Server config
-│           ├── logback.xml                   # Logging config
-│           └── swagger/
-│               └── documentation.yaml        # API spec
-│
-├── gradle/                                   # Gradle wrapper
-├── build.gradle.kts                          # Build configuration
-├── gradle.properties                         # Gradle properties
-├── settings.gradle.kts
-├── Dockerfile                                # Docker build
-└── README.md                                 # This file
+### ✅ Basic Health Check
+**URL**: `GET /health`
+
+**Description**: Check if backend is running
+
+**Response**:
+```json
+{
+  "status": "OK",
+  "version": "1.5.0",
+  "timestamp": 1640000000000
+}
 ```
 
 ---
 
-## ⚙️ Configuration
+### ✅ Detailed Health Check (NEW in v1.5)
+**URL**: `GET /health/detailed`
+
+**Description**: Check backend and AI service health
+
+**Response**:
+```json
+{
+  "status": "OK",
+  "version": "1.5.0",
+  "timestamp": 1640000000000,
+  "services": {
+    "backend": "OK",
+    "ai_service": "OK"
+  }
+}
+```
+
+**Status Codes**:
+- `200 OK`: All services healthy
+- `503 Service Unavailable`: AI service unavailable
+
+---
+
+### 🎥 Upload & Analyze Video (Enhanced)
+**URL**: `POST /api/upload-video`
+
+**Description**: Upload video for complete AI analysis
+
+**Request**:
+- **Content-Type**: `multipart/form-data`
+- **Field**: `video` (file)
+- **Supported formats**: `.mp4`, `.avi`, `.mov`, `.mkv`
+- **Max size**: 200 MB
+
+**Enhanced Processing**:
+1. Request correlation ID generated
+2. File validation (format, size)
+3. Forward to AI-Service with tracking
+4. Receive and validate AI response
+5. Log metrics and statistics
+6. Return enriched response
+
+**Response** (v1.5 format):
+```json
+{
+  "status": "success",
+  "processing_time_seconds": 45.3,
+  "video_info": {
+    "filename": "traffic_video.mp4",
+    "duration_seconds": 30.5,
+    "fps": 30.0,
+    "total_frames": 915,
+    "processed_frames": 458
+  },
+  "summary": {
+    "total_vehicles_tracked": 12,
+    "vehicles_with_plates": 8,
+    "violations_detected": 2,
+    "average_speed_kmh": 48.5
+  },
+  "violations": [
+    {
+      "violation_id": "v_001",
+      "plate_number": "123TUN456",
+      "plate_confidence": 0.92,
+      "plate_validated": true,
+      "speed_kmh": 72.4,
+      "speed_limit_kmh": 50.0,
+      "overspeed_kmh": 22.4,
+      "timestamp_seconds": 3.2,
+      "frame_number": 96,
+      "severity": "high"
+    }
+  ],
+  "tracked_vehicles": [...],
+  "configuration": {...}
+}
+```
+
+**Status Codes**:
+- `200 OK`: Video processed successfully
+- `400 Bad Request`: Invalid file format or too large
+- `503 Service Unavailable`: AI-Service not reachable
+- `504 Gateway Timeout`: Processing timeout (>10 min)
+- `502 Bad Gateway`: AI-Service error
+
+---
+
+### 📊 Upload Summary Only (NEW in v1.5)
+**URL**: `POST /api/upload-video/summary`
+
+**Description**: Upload video and get summary statistics only (faster response)
+
+**Request**: Same as full upload
+
+**Response**:
+```json
+{
+  "success": true,
+  "violations_count": 2,
+  "processing_time_seconds": 45.3,
+  "vehicles_tracked": 12,
+  "plates_detected": 8,
+  "video_duration_seconds": 30.5
+}
+```
+
+---
+
+## 🚀 Enhanced Features (v1.5)
+
+### 1. Request Correlation Tracking
+Every request gets a unique correlation ID for end-to-end tracing:
+
+**Log Example**:
+```
+[abc-123-def] ▶ Received upload request
+[abc-123-def] ℹ Processing video 'traffic.mp4' (15.34 MB)
+[abc-123-def] ✓ Upload complete in 45.3s: violations=2 vehicles=12
+```
+
+### 2. Enhanced Error Handling
+User-friendly error messages with actionable details:
+
+**Example Error Response**:
+```json
+{
+  "code": "AI_TIMEOUT",
+  "message": "AI processing took too long",
+  "timestamp": 1640000000000,
+  "details": "The video analysis exceeded the maximum processing time (10 minutes). Try uploading a shorter video or reducing its resolution."
+}
+```
+
+**Error Types**:
+- `BAD_REQUEST`: Invalid file format or parameters
+- `AI_UNAVAILABLE`: AI service not reachable
+- `AI_UNREACHABLE`: Invalid AI endpoint
+- `AI_TIMEOUT`: Processing timeout
+- `AI_ERROR`: AI service returned error
+- `INTERNAL_ERROR`: Backend error
+- `UNEXPECTED_ERROR`: Unknown error
+
+### 3. Response Validation
+Automatic validation of AI responses:
+- Status verification
+- Count consistency checks
+- Confidence threshold warnings
+- Validation status tracking
+
+**Validation Warnings**:
+```
+[abc-123-def] Response validation warnings:
+[abc-123-def]   - Low confidence violation: plate=123TUN456 confidence=0.45
+[abc-123-def]   - Unvalidated violation: plate=789ABC012
+```
+
+### 4. Structured Logging
+Enhanced logging with context:
+
+**Log Format**:
+```
+HH:mm:ss LEVEL logger-name - message
+```
+
+**Example**:
+```
+14:30:45 INFO  AIClient - [abc-123] AI ▶ Sending video 'traffic.mp4' (15.34 MB)
+14:31:30 INFO  AIClient - [abc-123] AI ◀ Received response 200 OK in 45.0s
+14:31:30 INFO  AIClient - [abc-123] AI ℹ Results: violations=2 vehicles=12 plates=8
+```
+
+---
+
+## 🔧 Configuration
 
 ### application.conf
 ```hocon
@@ -100,309 +264,64 @@ ktor {
 
   ai {
     endpoint = "http://localhost:8000/api/process-video"
+    timeout = 600000  # 10 minutes in milliseconds
   }
 }
 ```
 
-### Environment Variables (Docker)
+### Environment Variables
 - `KTOR_AI_ENDPOINT`: Override AI service URL
-  - Default: `http://localhost:8000/api/process-video`
-  - Docker: `http://traffic-ai-service:8000/api/process-video`
+- `KTOR_AI_TIMEOUT_MS`: Override timeout (default: 600000)
+- `LOG_LEVEL`: Logging level (default: INFO)
 
----
-
-## 🪵 Logging Configuration
-
-### Logback Setup (`logback.xml`)
-```xml
-<configuration>
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss} %-5level %logger{20} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
-  <root level="INFO">
-    <appender-ref ref="STDOUT"/>
-  </root>
-
-  <!-- Ktor logs -->
-  <logger name="io.ktor" level="INFO"/>
-  
-  <!-- Netty (quiet) -->
-  <logger name="io.netty" level="WARN"/>
-</configuration>
-```
-
-### Log Levels
-- **INFO**: Application events, AI communication
-- **WARN**: Network issues
-- **ERROR**: Critical failures
-
-### Example Logs
-```
-INFO  [Application] Using AI endpoint: http://ai-service:8000
-INFO  [AIRoutes] Received video 'traffic.mp4' (15.34 MB)
-INFO  [AIClient] AI ▶ Sending video 'traffic.mp4' (15.34 MB)
-INFO  [AIClient] AI ◀ Received response 200 OK for 'traffic.mp4'
+**Docker Example**:
+```yaml
+environment:
+  KTOR_AI_ENDPOINT: http://traffic-ai-service:8000/api/process-video
+  KTOR_AI_TIMEOUT_MS: 600000
+  LOG_LEVEL: INFO
 ```
 
 ---
 
-## 🔄 Application Startup Flow
+## 🏗️ Project Structure
 
 ```text
-1. EngineMain.main(args)
-   ↓
-2. Load application.conf
-   ↓
-3. Get AI_ENDPOINT (env or config)
-   ↓
-4. Initialize AIClient
-   ↓
-5. Install Plugins:
-   - Serialization (JSON)
-   - CORS
-   - StatusPages (error handling)
-   - CallLogging
-   - Routing
-   - Swagger
-   ↓
-6. Server ready on 0.0.0.0:8080
-```
-
----
-
-## 📡 API Endpoints
-
-### ✅ Health Check
-**URL**: `GET /health`
-
-**Description**: Check if backend is running
-
-**Response**:
-```json
-{
-  "status": "OK"
-}
-```
-
-**Status Codes**:
-- `200 OK`: Service is healthy
-
----
-
-### 🎥 Upload & Analyze Video
-**URL**: `POST /api/upload-video`
-
-**Description**: Upload a video for traffic analysis
-
-**Request**:
-- **Content-Type**: `multipart/form-data`
-- **Field**: `video` (file)
-- **Supported formats**: `.mp4`, `.avi`, `.mov`, `.mkv`
-
-**Processing Flow**:
-```
-1. Backend receives video from frontend
-2. Validates file format
-3. Logs video info (name, size)
-4. Forwards to AI-Service
-5. Receives AI response
-6. Returns JSON to frontend
-```
-
-**Response** (Proxied from AI-Service):
-```json
-{
-  "violations_nbr": 2,
-  "violations": {
-    "123TUN456": {
-      "speed": 72.4,
-      "speed_limit": 50,
-      "timestamp": 3.2
-    },
-    "789TUN012": {
-      "speed": 65.8,
-      "speed_limit": 50,
-      "timestamp": 8.5
-    }
-  },
-  "details": {
-    "0": {
-      "first_frame": 10,
-      "last_frame": 85,
-      "positions": [[412, 318], [430, 340]],
-      "plate": "123TUN456"
-    },
-    "1": {
-      "first_frame": 25,
-      "last_frame": 120,
-      "positions": [[520, 280], [538, 295]],
-      "plate": "789TUN012"
-    }
-  }
-}
-```
-
-**Status Codes**:
-- `200 OK`: Video processed successfully
-- `400 Bad Request`: Invalid file format
-- `503 Service Unavailable`: AI-Service not reachable
-- `504 Gateway Timeout`: AI-Service timeout (>10 min)
-- `502 Bad Gateway`: AI-Service error
-
----
-
-## 🤖 AI-Service Integration
-
-### AIClient Features
-- ✅ Multipart video upload
-- ✅ Dynamic content-type detection
-- ✅ Long timeout support (10 minutes)
-- ✅ Robust error handling
-- ✅ Structured logging
-- ✅ Auto-retry logic (future)
-
-### Communication Flow
-```
-Frontend → Ktor Backend → AI-Service
-   (video)      (video)        ↓
-                            Processing
-                               ↓
-Frontend ← Ktor Backend ← AI-Service
-  (JSON)      (JSON)       (JSON)
-```
-
-### Timeout Configuration
-```kotlin
-HttpTimeout {
-  requestTimeoutMillis = 600_000  // 10 minutes
-  connectTimeoutMillis = 30_000   // 30 seconds
-  socketTimeoutMillis = 600_000   // 10 minutes
-}
-```
-
----
-
-## 🧯 Error Handling
-
-### Centralized Error Management
-All errors are handled by **StatusPages** plugin.
-
-### Error Response Format
-```json
-{
-  "code": "ERROR_CODE",
-  "message": "Human-readable description"
-}
-```
-
-### Handled Exceptions
-
-| Exception | HTTP Status | Code | Description |
-|-----------|-------------|------|-------------|
-| `IllegalArgumentException` | 400 | `BAD_REQUEST` | Invalid file format |
-| `ConnectException` | 503 | `AI_UNAVAILABLE` | AI-Service not running |
-| `UnresolvedAddressException` | 503 | `AI_UNREACHABLE` | Invalid AI endpoint |
-| `HttpRequestTimeoutException` | 504 | `AI_TIMEOUT` | AI took too long |
-| `ResponseException` | 502 | `AI_ERROR` | AI returned error |
-| `RuntimeException` | 500 | `INTERNAL_ERROR` | Backend error |
-| `Throwable` | 500 | `UNEXPECTED_ERROR` | Unknown error |
-
-### Error Examples
-
-**AI-Service Down**:
-```json
-{
-  "code": "AI_UNAVAILABLE",
-  "message": "FastAPI backend is not running"
-}
-```
-
-**Invalid Video Format**:
-```json
-{
-  "code": "BAD_REQUEST",
-  "message": "Invalid file in request"
-}
-```
-
-**AI Timeout**:
-```json
-{
-  "code": "AI_TIMEOUT",
-  "message": "FastAPI did not respond in time"
-}
-```
-
----
-
-## 🔐 CORS Policy (MVP)
-
-### Current Configuration (Development)
-```kotlin
-install(CORS) {
-  allowHeader(HttpHeaders.ContentType)
-  allowMethod(HttpMethod.Get)
-  allowMethod(HttpMethod.Post)
-  anyHost()  // ⚠️ Allow all origins
-}
-```
-
-### Production Configuration (v2.0)
-```kotlin
-install(CORS) {
-  allowHost("frontend-domain.com", schemes = listOf("https"))
-  allowMethod(HttpMethod.Get)
-  allowMethod(HttpMethod.Post)
-  allowHeader(HttpHeaders.ContentType)
-  allowCredentials = true
-}
-```
-
----
-
-## 📄 Swagger / OpenAPI
-
-### Access Swagger UI
-```
-http://localhost:8080/swagger
-```
-
-### OpenAPI Specification
-Located at: `src/main/resources/swagger/documentation.yaml`
-
-```yaml
-openapi: 3.0.3
-info:
-  title: Traffic Monitoring API
-  version: "1.0.0"
-
-paths:
-  /health:
-    get:
-      summary: Health check
-      responses:
-        "200":
-          description: OK
-
-  /api/upload-video:
-    post:
-      summary: Analyze traffic video
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                video:
-                  type: string
-                  format: binary
-      responses:
-        "200":
-          description: Analysis result
+ktor-backend/
+├── src/
+│   └── main/
+│       ├── kotlin/
+│       │   └── com/traffic/
+│       │       ├── client/
+│       │       │   └── AIClient.kt          # Enhanced AI communication
+│       │       ├── models/
+│       │       │   ├── AIRequest.kt         
+│       │       │   ├── AIResponse.kt        # v1.5 data models
+│       │       │   ├── ErrorResponse.kt     # Enhanced error format
+│       │       │   └── HealthResponse.kt    # Enhanced health format
+│       │       ├── plugins/
+│       │       │   ├── CallLogging.kt       # Request logging
+│       │       │   ├── CORS.kt              # Cross-origin config
+│       │       │   ├── Routing.kt           # Route registration
+│       │       │   ├── Serialization.kt     # JSON config
+│       │       │   ├── StatusPages.kt       # Enhanced error handling
+│       │       │   └── Swagger.kt           # API docs
+│       │       ├── routes/
+│       │       │   ├── AIRoutes.kt          # Video upload endpoints
+│       │       │   └── HealthRoutes.kt      # Health endpoints
+│       │       └── Application.kt           # Enhanced entry point
+│       └── resources/
+│           ├── application.conf
+│           ├── logback.xml                  # Structured logging
+│           └── swagger/
+│               └── documentation.yaml       # v1.5 API spec
+├── build.gradle.kts
+├── Dockerfile                               # Multi-stage build
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+└── README.md
 ```
 
 ---
@@ -422,6 +341,7 @@ cd ktor-backend
 ### 2️⃣ Access the API
 - **Base URL**: http://localhost:8080
 - **Health**: http://localhost:8080/health
+- **Detailed Health**: http://localhost:8080/health/detailed
 - **Swagger**: http://localhost:8080/swagger
 
 ---
@@ -430,7 +350,6 @@ cd ktor-backend
 
 ### Build Image
 ```bash
-cd ktor-backend
 docker build -t traffic-ktor-backend .
 ```
 
@@ -441,38 +360,7 @@ docker run -p 8080:8080 \
   traffic-ktor-backend
 ```
 
-### Run with Docker Compose
-```bash
-# From project root
-docker-compose up traffic-ktor-backend
-```
-
----
-
-## 🔧 Docker Configuration
-
-### Multi-Stage Dockerfile
-
-**Stage 1: Build**
-```dockerfile
-FROM gradle:8.14-jdk17 AS builder
-WORKDIR /app
-COPY build.gradle.kts settings.gradle.kts ./
-RUN gradle dependencies --no-daemon
-COPY src ./src
-RUN gradle shadowJar --no-daemon
-```
-
-**Stage 2: Runtime**
-```dockerfile
-FROM eclipse-temurin:17-jre-jammy
-WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
-```
-
-### Benefits
+### Multi-Stage Build Benefits
 - ✅ Smaller final image (~200MB)
 - ✅ No build tools in runtime
 - ✅ Faster deployments
@@ -482,23 +370,59 @@ CMD ["java", "-jar", "app.jar"]
 
 ## 🧪 Testing
 
-### Manual Testing with cURL
-
-**Health Check**:
+### Health Checks
 ```bash
+# Basic health
 curl http://localhost:8080/health
+
+# Detailed health (includes AI service)
+curl http://localhost:8080/health/detailed
 ```
 
-**Upload Video**:
+### Upload Video (Full Response)
 ```bash
 curl -X POST http://localhost:8080/api/upload-video \
   -F "video=@test_video.mp4"
 ```
 
-### Testing with Postman
-1. Import OpenAPI spec from `/swagger`
-2. Send `POST /api/upload-video` with video file
-3. Verify JSON response
+### Upload Video (Summary Only)
+```bash
+curl -X POST http://localhost:8080/api/upload-video/summary \
+  -F "video=@test_video.mp4"
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: "AI_UNAVAILABLE"
+**Cause**: AI service not reachable
+
+**Solution**:
+```bash
+# Check AI service
+curl http://localhost:8000/health
+
+# Check detailed health to see AI status
+curl http://localhost:8080/health/detailed
+
+# Verify KTOR_AI_ENDPOINT
+echo $KTOR_AI_ENDPOINT
+```
+
+### Issue: Port 8080 already in use
+**Solution**:
+```bash
+# Find process
+lsof -i :8080
+
+# Kill process
+kill -9 <PID>
+```
+
+### Issue: Logs not showing
+**Solution**:
+Check `logback.xml` configuration or adjust `LOG_LEVEL` environment variable.
 
 ---
 
@@ -507,7 +431,8 @@ curl -X POST http://localhost:8080/api/upload-video \
 ### Request Processing
 - Video receive: < 1 second
 - AI forward: ~0.5 seconds
-- AI processing: 45-180 seconds (depends on video)
+- AI processing: 45-180 seconds (video-dependent)
+- Response validation: < 0.1 seconds
 - Response return: < 1 second
 
 ### Memory Usage
@@ -517,127 +442,46 @@ curl -X POST http://localhost:8080/api/upload-video \
 
 ---
 
-## 🐛 Troubleshooting
+## 🚀 v2.0 Roadmap
 
-### Issue: "AI_UNAVAILABLE"
-**Solution**:
-```bash
-# Check AI-Service is running
-curl http://localhost:8000/health
-
-# Check KTOR_AI_ENDPOINT is correct
-echo $KTOR_AI_ENDPOINT
-```
-
-### Issue: Port 8080 already in use
-**Solution**:
-```bash
-# Find process using port
-lsof -i :8080
-
-# Kill process
-kill -9 <PID>
-
-# Or change port in application.conf
-```
-
-### Issue: Docker container won't start
-**Solution**:
-```bash
-# Check logs
-docker logs traffic-ktor-backend
-
-# Rebuild without cache
-docker build --no-cache -t traffic-ktor-backend .
-```
-
-### Issue: "Invalid file in request"
-**Solution**:
-- Verify file field name is "video"
-- Check Content-Type is multipart/form-data
-- Ensure file has valid extension (.mp4, .avi, etc.)
-
----
-
-## 🚀 v1.5 Improvements (Coming Next)
-
-### Enhanced Logging
-- [ ] Structured logging (JSON format)
-- [ ] Request/response correlation IDs
-- [ ] Performance metrics logging
-- [ ] Error aggregation
-
-### Better Error Handling
-- [ ] More detailed error messages
-- [ ] Client-friendly error responses
-- [ ] Retry logic for transient failures
-- [ ] Circuit breaker pattern
-
-### Code Quality
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] Code documentation
-- [ ] API versioning
-
-### Performance
-- [ ] Response caching
-- [ ] Async processing queue
-- [ ] Video compression before forwarding
-- [ ] Progress updates (WebSocket)
-
----
-
-## 📈 Roadmap
-
-### v1.5 — Stabilization
-- Enhanced logging & monitoring
-- Better error messages
-- Code cleanup & documentation
-- Performance optimizations
-
-### v2.0 — Functional Complete
-- PostgreSQL integration
-- JWT authentication
-- User management
-- Violation history API
-- Statistics endpoints
-
-### v3.0 — Production Ready
-- WebSocket support
-- Real-time updates
-- Advanced monitoring
-- Load balancing
-- Rate limiting
+### Planned Features
+- [ ] PostgreSQL database integration
+- [ ] JWT authentication
+- [ ] User management
+- [ ] Violation history storage
+- [ ] Advanced filtering and pagination
+- [ ] Statistics endpoints
+- [ ] Report generation
+- [ ] Caching layer (Redis)
+- [ ] Rate limiting
+- [ ] WebSocket support for real-time updates
 
 ---
 
 ## 📖 Dependencies
 
-### Core Dependencies
 ```kotlin
 // Server
-implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
+implementation("io.ktor:ktor-server-core-jvm:2.3.13")
+implementation("io.ktor:ktor-server-netty-jvm:2.3.13")
 
 // Serialization
-implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.13")
+implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.13")
 
-// Middlewares
-implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
-implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
-implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+// Plugins
+implementation("io.ktor:ktor-server-call-logging-jvm:2.3.13")
+implementation("io.ktor:ktor-server-cors-jvm:2.3.13")
+implementation("io.ktor:ktor-server-status-pages:2.3.13")
+implementation("io.ktor:ktor-server-swagger:2.3.13")
 
 // Client
-implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
-implementation("io.ktor:ktor-client-apache-jvm:$ktor_version")
-implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
+implementation("io.ktor:ktor-client-core-jvm:2.3.13")
+implementation("io.ktor:ktor-client-apache-jvm:2.3.13")
+implementation("io.ktor:ktor-client-content-negotiation-jvm:2.3.13")
 
 // Logging
-implementation("ch.qos.logback:logback-classic:$logback_version")
-
-// Swagger
-implementation("io.ktor:ktor-server-swagger:$ktor_version")
+implementation("ch.qos.logback:logback-classic:1.5.6")
 ```
 
 ---
@@ -645,48 +489,17 @@ implementation("io.ktor:ktor-server-swagger:$ktor_version")
 ## 🔗 Integration Points
 
 ### With AI-Service
-- **Endpoint**: `POST http://ai-service:8000/api/process-video`
+- **Endpoint**: `POST http://traffic-ai-service:8000/api/process-video`
 - **Format**: `multipart/form-data`
 - **Timeout**: 600 seconds (10 minutes)
+- **Headers**: `X-Correlation-ID` for tracking
 
 ### With Frontend
-- **Base URL**: `http://backend:8080`
+- **Base URL**: `http://traffic-ktor-backend:8080`
 - **CORS**: Enabled for all origins (MVP)
 - **Content-Type**: `application/json`
 
 ---
 
-## 📝 Development Commands
-
-### Build
-```bash
-./gradlew build
-```
-
-### Run Tests
-```bash
-./gradlew test
-```
-
-### Generate Fat JAR
-```bash
-./gradlew shadowJar
-```
-
-### Clean Build
-```bash
-./gradlew clean build
-```
-
----
-
-## 🙏 Acknowledgments
-
-- **Ktor** - Modern Kotlin web framework
-- **kotlinx.serialization** - JSON handling
-- **Apache HTTP Client** - HTTP communication
-- **Logback** - Logging framework
-
----
-
-**Ready for v1.5 improvements?** See the roadmap above! 🚀
+**Backend Status**: v1.5 Stabilization Complete ✅  
+**Ready for**: v2.0 Database Integration 🚀

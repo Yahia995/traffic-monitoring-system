@@ -1,29 +1,411 @@
 openapi: 3.0.3
 info:
-  title: Traffic Monitoring API
-  version: "1.0.0"
+  title: Traffic Monitoring Backend API
+  version: "1.5.0"
+  description: |
+    Enhanced backend API for traffic violation detection system.
+    
+    **New in v1.5:**
+    - Enhanced response format with metadata
+    - Confidence tracking for violations
+    - Validation status for license plates
+    - Summary statistics
+    - Detailed health checks
+
+  contact:
+    name: Traffic Monitoring Team
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+  - url: http://traffic-ktor-backend:8080
+    description: Docker environment
+
+tags:
+  - name: Health
+    description: Service health and status endpoints
+  - name: Video Processing
+    description: Video upload and analysis endpoints
 
 paths:
   /health:
     get:
-      summary: Health check
+      tags:
+        - Health
+      summary: Basic health check
+      description: Check if the backend service is running
       responses:
         "200":
-          description: OK
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  version:
+                    type: string
+                    example: "1.5.0"
+                  timestamp:
+                    type: integer
+                    format: int64
+                    example: 1640000000000
 
-  /ai/analyze:
+  /health/detailed:
+    get:
+      tags:
+        - Health
+      summary: Detailed health check
+      description: Check backend and AI service health
+      responses:
+        "200":
+          description: All services are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  version:
+                    type: string
+                    example: "1.5.0"
+                  timestamp:
+                    type: integer
+                    format: int64
+                  services:
+                    type: object
+                    properties:
+                      backend:
+                        type: string
+                        example: "OK"
+                      ai_service:
+                        type: string
+                        example: "OK"
+        "503":
+          description: AI service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/upload-video:
     post:
-      summary: Analyze traffic video
+      tags:
+        - Video Processing
+      summary: Upload video for full analysis
+      description: |
+        Upload a traffic video for AI analysis. Returns complete results including:
+        - All tracked vehicles
+        - Detected violations
+        - Confidence scores
+        - Validation status
+        - Processing metadata
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - video
+              properties:
+                video:
+                  type: string
+                  format: binary
+                  description: Video file (mp4, avi, mov, mkv)
+      responses:
+        "200":
+          description: Video processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIResponse'
+        "400":
+          description: Bad request (invalid format or file too large)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: AI service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "504":
+          description: Processing timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/upload-video/summary:
+    post:
+      tags:
+        - Video Processing
+      summary: Upload video for summary analysis
+      description: |
+        Upload a traffic video and receive only summary statistics.
+        Useful for quick overview without detailed vehicle tracking data.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - video
               properties:
                 video:
                   type: string
                   format: binary
       responses:
         "200":
-          description: Analysis result
+          description: Summary statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponseSummary'
+
+components:
+  schemas:
+    AIResponse:
+      type: object
+      required:
+        - status
+        - processing_time_seconds
+        - video_info
+        - summary
+        - violations
+        - tracked_vehicles
+        - configuration
+      properties:
+        status:
+          type: string
+          example: "success"
+        processing_time_seconds:
+          type: number
+          format: double
+          example: 45.3
+        video_info:
+          $ref: '#/components/schemas/VideoInfo'
+        summary:
+          $ref: '#/components/schemas/Summary'
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Violation'
+        tracked_vehicles:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackedVehicle'
+        configuration:
+          $ref: '#/components/schemas/Configuration'
+
+    VideoInfo:
+      type: object
+      properties:
+        filename:
+          type: string
+          example: "traffic_video.mp4"
+        duration_seconds:
+          type: number
+          format: double
+          example: 30.5
+        fps:
+          type: number
+          format: double
+          example: 30.0
+        total_frames:
+          type: integer
+          example: 915
+        processed_frames:
+          type: integer
+          example: 458
+
+    Summary:
+      type: object
+      properties:
+        total_vehicles_tracked:
+          type: integer
+          example: 12
+        vehicles_with_plates:
+          type: integer
+          example: 8
+        violations_detected:
+          type: integer
+          example: 2
+        average_speed_kmh:
+          type: number
+          format: double
+          example: 48.5
+
+    Violation:
+      type: object
+      properties:
+        violation_id:
+          type: string
+          example: "v_001"
+        plate_number:
+          type: string
+          example: "123TUN456"
+        plate_confidence:
+          type: number
+          format: double
+          example: 0.92
+        plate_validated:
+          type: boolean
+          example: true
+        speed_kmh:
+          type: number
+          format: double
+          example: 72.4
+        speed_limit_kmh:
+          type: number
+          format: double
+          example: 50.0
+        overspeed_kmh:
+          type: number
+          format: double
+          example: 22.4
+        timestamp_seconds:
+          type: number
+          format: double
+          example: 3.2
+        frame_number:
+          type: integer
+          example: 96
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          example: "high"
+
+    TrackedVehicle:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          example: "veh_001"
+        tracking_info:
+          type: object
+          properties:
+            first_frame:
+              type: integer
+            last_frame:
+              type: integer
+            frames_tracked:
+              type: integer
+            trajectory_length_pixels:
+              type: number
+              format: double
+        plate_info:
+          type: object
+          properties:
+            plate_number:
+              type: string
+              nullable: true
+            raw_ocr_text:
+              type: string
+            confidence:
+              type: number
+              format: double
+            validated:
+              type: boolean
+            corrections_applied:
+              type: array
+              items:
+                type: string
+            validation_errors:
+              type: array
+              items:
+                type: string
+        speed_info:
+          type: object
+          properties:
+            speed_kmh:
+              type: number
+              format: double
+            is_violation:
+              type: boolean
+            calculation_valid:
+              type: boolean
+        positions:
+          type: array
+          items:
+            type: object
+            properties:
+              frame:
+                type: integer
+              x:
+                type: integer
+              y:
+                type: integer
+
+    Configuration:
+      type: object
+      properties:
+        speed_limit_kmh:
+          type: number
+          format: double
+        pixel_to_meter:
+          type: number
+          format: double
+        min_tracked_frames:
+          type: integer
+        frame_skip:
+          type: integer
+        vehicle_confidence:
+          type: number
+          format: double
+        plate_confidence:
+          type: number
+          format: double
+
+    UploadResponseSummary:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        violations_count:
+          type: integer
+          example: 2
+        processing_time_seconds:
+          type: number
+          format: double
+          example: 45.3
+        vehicles_tracked:
+          type: integer
+          example: 12
+        plates_detected:
+          type: integer
+          example: 8
+        video_duration_seconds:
+          type: number
+          format: double
+          example: 30.5
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "AI_UNAVAILABLE"
+        message:
+          type: string
+          example: "AI service is not reachable"
+        timestamp:
+          type: integer
+          format: int64
+          example: 1640000000000
+        details:
+          type: string
+          nullable: true
+          example: "The AI processing service is currently unavailable"

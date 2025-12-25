@@ -1,27 +1,61 @@
 <configuration>
 
+    <!-- Console Appender with enhanced formatting -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss} %-5level %logger{20} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %-20logger{20} | %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- ROOT -->
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
+    <!-- File Appender for persistent logs -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/traffic-backend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/traffic-backend.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %-30logger{30} | [%thread] | %msg%n</pattern>
+        </encoder>
+    </appender>
 
-    <!-- Ktor -->
-    <logger name="io.ktor" level="INFO"/>
+    <!-- Error File Appender -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/traffic-backend-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/traffic-backend-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %-30logger{30} | [%thread] | %msg%n%ex{full}</pattern>
+        </encoder>
+    </appender>
 
-    <!-- Netty -->
+    <!-- Application Loggers -->
+    <logger name="com.traffic" level="INFO"/>
+    <logger name="com.traffic.client.AIClient" level="INFO"/>
+    <logger name="com.traffic.routes" level="INFO"/>
+
+    <!-- Ktor Framework Loggers -->
+    <logger name="io.ktor.application" level="INFO"/>
+    <logger name="io.ktor.routing" level="INFO"/>
+    <logger name="io.ktor.server.engine" level="INFO"/>
+
+    <!-- Reduce noise from libraries -->
     <logger name="io.netty" level="WARN"/>
-
-    <!-- Apache HTTP -->
     <logger name="org.apache.http" level="WARN"/>
-
-    <!-- Swagger / Codegen (IMPORTANT) -->
     <logger name="io.swagger" level="ERROR"/>
     <logger name="io.swagger.codegen" level="ERROR"/>
+
+    <!-- ROOT Logger -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <!-- Uncomment for file logging -->
+        <!-- <appender-ref ref="FILE"/> -->
+        <!-- <appender-ref ref="ERROR_FILE"/> -->
+    </root>
 
 </configuration>

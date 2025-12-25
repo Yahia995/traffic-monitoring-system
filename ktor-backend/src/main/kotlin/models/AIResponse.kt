@@ -3,6 +3,16 @@ package com.traffic.models
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class UploadResponseSummary(
+    val success: Boolean,
+    val violations_count: Int,
+    val processing_time_seconds: Double,
+    val vehicles_tracked: Int,
+    val plates_detected: Int,
+    val video_duration_seconds: Double
+)
+
+@Serializable
 data class AIResponse(
     val status: String,
     val processing_time_seconds: Double,

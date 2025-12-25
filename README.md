@@ -1,21 +1,58 @@
-# 🚦 Traffic Monitoring System — v1.0 (MVP Complete)
+# 🚦 Traffic Monitoring System — v1.5 (Stabilization Complete)
 
-An end-to-end **intelligent traffic violation detection system** that analyzes traffic videos to detect vehicles, recognize license plates, estimate speed, and identify traffic violations.
+An end-to-end **intelligent traffic violation detection system** that analyzes traffic videos to detect vehicles, recognize license plates, estimate speed, and identify traffic violations with enhanced accuracy and validation.
 
-**Current Version**: v1.0 (MVP) ✅  
-**Next Version**: v1.5 (Stabilization & Enhancements) 🚀
+**Current Version**: v1.5 (Stabilization) ✅  
+**Next Version**: v2.0 (Database & Authentication) 🚀
 
 ---
 
 ## 🎯 Project Objectives
 
-- ✅ Detect vehicles in traffic videos
-- ✅ Detect and recognize license plates using OCR
-- ✅ Track vehicles across video frames
+- ✅ Detect vehicles in traffic videos using YOLOv8
+- ✅ Detect and recognize license plates with enhanced OCR
+- ✅ Track vehicles across video frames with centroid tracking
 - ✅ Estimate vehicle speed (pixel-based approximation)
-- ✅ Detect speeding violations
-- ✅ Display results in a web dashboard
-- ✅ Full Docker containerization
+- ✅ Detect speeding violations with severity classification
+- ✅ Validate license plates with pattern matching and correction
+- ✅ Display results in modern, interactive web dashboard
+- ✅ Full Docker containerization with health checks
+
+---
+
+## 🆕 What's New in v1.5
+
+### AI Service
+- ✅ Enhanced OCR with multi-pass processing and validation
+- ✅ Automatic license plate correction (common OCR errors)
+- ✅ Pattern-based validation with confidence tracking
+- ✅ Improved error handling and detailed logging
+- ✅ Configurable via environment variables
+
+### Backend
+- ✅ Request correlation IDs for tracing
+- ✅ Enhanced error messages with user-friendly details
+- ✅ Response validation and consistency checks
+- ✅ Detailed health endpoint with AI service status
+- ✅ Summary-only endpoint for quick statistics
+
+### Frontend
+- ✅ Modern gradient-based UI with professional styling
+- ✅ Tab-based interface (Violations / All Vehicles / Raw Data)
+- ✅ Interactive summary dashboard with visual metrics
+- ✅ Sortable, filterable violations table
+- ✅ Expandable vehicle detail cards
+- ✅ CSV export functionality
+- ✅ Drag & drop file upload
+- ✅ Real-time progress indicators
+- ✅ Severity color coding and confidence bars
+- ✅ Responsive design for all screen sizes
+
+### Infrastructure
+- ✅ Docker health checks for all services
+- ✅ Resource limits and reservations
+- ✅ Enhanced networking configuration
+- ✅ Comprehensive environment variable support
 
 ---
 
@@ -25,22 +62,29 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 ┌─────────────────────────────────────────────────┐
 │  Frontend Dashboard (React + Vite)              │
 │  Port: 5173                                     │
+│  • Modern UI with tabs & statistics             │
+│  • Drag & drop upload                           │
+│  • Interactive visualizations                   │
 └────────────────┬────────────────────────────────┘
                  │ HTTP REST
                  ↓
 ┌─────────────────────────────────────────────────┐
 │  Backend API (Ktor + Kotlin)                    │
 │  Port: 8080                                     │
+│  • Request correlation tracking                 │
+│  • Enhanced error handling                      │
+│  • Response validation                          │
 └────────────────┬────────────────────────────────┘
                  │ HTTP REST
                  ↓
 ┌─────────────────────────────────────────────────┐
 │  AI-Service (FastAPI + Python)                  │
 │  Port: 8000                                     │
-│  • YOLO Detection                               │
-│  • PaddleOCR                                    │
+│  • Enhanced YOLOv8 Detection                    │
+│  • Multi-pass PaddleOCR with validation         │
+│  • Automatic plate correction                   │
 │  • Centroid Tracker                             │
-│  • Speed Estimator                              │
+│  • Speed Estimator with severity classification │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -50,13 +94,15 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 
 ### 🤖 AI-Service (Python / FastAPI)
 **Port**: 8000  
+**Version**: 1.5.0  
 **Responsibilities**:
 - Vehicle detection using YOLOv8
 - License plate detection
-- OCR with PaddleOCR
+- Enhanced OCR with PaddleOCR (multi-pass)
+- Automatic plate correction and validation
 - Vehicle tracking (Centroid-based)
 - Speed estimation (pixel-distance)
-- Violation detection
+- Violation detection with severity classification
 
 📁 **Location**: `ai-service/`  
 📖 **Documentation**: [ai-service/README.md](./ai-service/README.md)
@@ -65,10 +111,14 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 
 ### ⚙️ Backend API (Ktor / Kotlin)
 **Port**: 8080  
+**Version**: 1.5.0  
 **Responsibilities**:
-- Video upload endpoint
+- Video upload endpoints (full & summary)
 - Communication with AI-Service
-- Error handling & logging
+- Request correlation tracking
+- Enhanced error handling
+- Response validation
+- Health monitoring (basic & detailed)
 - CORS management
 - Swagger/OpenAPI documentation
 
@@ -79,64 +129,18 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 
 ### 🖥️ Dashboard Frontend (React / Vite)
 **Port**: 5173  
+**Version**: 1.5.0  
 **Responsibilities**:
-- Video upload interface
-- Violations table display
-- Raw JSON debugging view
-- Simple, functional MVP UI
+- Modern, responsive web interface
+- Video upload with drag & drop
+- Summary statistics dashboard
+- Interactive violations table
+- Detailed vehicle tracking view
+- CSV export functionality
+- Real-time progress tracking
 
 📁 **Location**: `dashboard-frontend/`  
 📖 **Documentation**: [dashboard-frontend/README.md](./dashboard-frontend/README.md)
-
----
-
-## 🏗️ Repository Structure
-
-```text
-traffic-monitoring-system/
-├── ai-service/              # Python AI processing service
-│   ├── detectors/           # YOLO detectors
-│   ├── tracker/             # Centroid tracker
-│   ├── ocr/                 # PaddleOCR integration
-│   ├── utils/               # Config & utilities
-│   ├── models/              # YOLO model files (.pt)
-│   ├── app.py               # FastAPI entry point
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── README.md
-│
-├── ktor-backend/            # Kotlin backend API
-│   ├── src/
-│   │   └── main/
-│   │       ├── kotlin/
-│   │       │   ├── client/      # AI client
-│   │       │   ├── models/      # Data models
-│   │       │   ├── plugins/     # Ktor plugins
-│   │       │   ├── routes/      # API routes
-│   │       │   └── Application.kt
-│   │       └── resources/
-│   │           ├── application.conf
-│   │           ├── logback.xml
-│   │           └── swagger/
-│   ├── build.gradle.kts
-│   ├── Dockerfile
-│   └── README.md
-│
-├── dashboard-frontend/      # React dashboard
-│   ├── src/
-│   │   ├── api/            # Backend API calls
-│   │   ├── components/     # React components
-│   │   ├── styles/         # CSS files
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   ├── Dockerfile
-│   └── README.md
-│
-├── docker-compose.yml       # Multi-service orchestration
-├── .gitignore
-└── README.md               # This file
-```
 
 ---
 
@@ -148,11 +152,17 @@ traffic-monitoring-system/
 
 ### 1️⃣ Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/Yahia995/traffic-monitoring-system.git
 cd traffic-monitoring-system
 ```
 
-### 2️⃣ Start All Services
+### 2️⃣ Configure Environment (Optional)
+```bash
+cp .env.example .env
+# Edit .env if you need custom configuration
+```
+
+### 3️⃣ Start All Services
 ```bash
 docker-compose up --build
 ```
@@ -162,45 +172,12 @@ This will start:
 - **Backend** on `http://localhost:8080`
 - **Frontend** on `http://localhost:5173`
 
-### 3️⃣ Access the Dashboard
+### 4️⃣ Access the Dashboard
 Open your browser to: **http://localhost:5173**
 
-### 4️⃣ Stop Services
+### 5️⃣ Stop Services
 ```bash
 docker-compose down
-```
-
----
-
-## 🔧 Local Development (Without Docker)
-
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-- JDK 17+
-- Gradle 8+
-
-### 1️⃣ Start AI-Service
-```bash
-cd ai-service
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
-pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 8000
-```
-
-### 2️⃣ Start Backend
-```bash
-cd ktor-backend
-./gradlew run
-```
-
-### 3️⃣ Start Frontend
-```bash
-cd dashboard-frontend
-npm install
-npm run dev
 ```
 
 ---
@@ -211,156 +188,163 @@ npm run dev
 |---------|-----|-------------|
 | **Frontend** | http://localhost:5173 | Web dashboard |
 | **Backend API** | http://localhost:8080 | REST API |
+| **Backend Health** | http://localhost:8080/health | Basic health check |
+| **Backend Detailed Health** | http://localhost:8080/health/detailed | Detailed health with AI status |
 | **Backend Swagger** | http://localhost:8080/swagger | API documentation |
-| **Backend Health** | http://localhost:8080/health | Health check |
 | **AI-Service Docs** | http://localhost:8000/docs | FastAPI Swagger UI |
 | **AI-Service Health** | http://localhost:8000/health | Health check |
 
 ---
 
-## 📤 API Response Format
+## 📤 API Response Format (v1.5)
 
 ```json
 {
-  "violations_nbr": 2,
-  "violations": {
-    "123TUN456": {
-      "speed": 72.4,
-      "speed_limit": 50,
-      "timestamp": 3.2
-    },
-    "789TUN012": {
-      "speed": 65.8,
-      "speed_limit": 50,
-      "timestamp": 8.5
-    }
+  "status": "success",
+  "processing_time_seconds": 45.3,
+  "video_info": {
+    "filename": "traffic_video.mp4",
+    "duration_seconds": 30.5,
+    "fps": 30.0,
+    "total_frames": 915,
+    "processed_frames": 458
   },
-  "details": {
-    "0": {
-      "first_frame": 10,
-      "last_frame": 85,
-      "positions": [[412, 318], [430, 340], [448, 362]],
-      "plate": "123TUN456"
-    },
-    "1": {
-      "first_frame": 25,
-      "last_frame": 120,
-      "positions": [[520, 280], [538, 295]],
-      "plate": "789TUN012"
+  "summary": {
+    "total_vehicles_tracked": 12,
+    "vehicles_with_plates": 8,
+    "violations_detected": 2,
+    "average_speed_kmh": 48.5
+  },
+  "violations": [
+    {
+      "violation_id": "v_001",
+      "plate_number": "123TUN456",
+      "plate_confidence": 0.92,
+      "plate_validated": true,
+      "speed_kmh": 72.4,
+      "speed_limit_kmh": 50.0,
+      "overspeed_kmh": 22.4,
+      "timestamp_seconds": 3.2,
+      "frame_number": 96,
+      "severity": "high"
     }
+  ],
+  "tracked_vehicles": [
+    {
+      "vehicle_id": "veh_001",
+      "tracking_info": {
+        "first_frame": 10,
+        "last_frame": 85,
+        "frames_tracked": 76,
+        "trajectory_length_pixels": 450.3
+      },
+      "plate_info": {
+        "plate_number": "123TUN456",
+        "raw_ocr_text": "I23TUN456",
+        "confidence": 0.92,
+        "validated": true,
+        "corrections_applied": ["I→1"],
+        "detection_frame": 25
+      },
+      "speed_info": {
+        "speed_kmh": 72.4,
+        "is_violation": true,
+        "calculation_valid": true
+      },
+      "positions": [
+        { "frame": 10, "x": 412, "y": 318 },
+        { "frame": 20, "x": 430, "y": 340 }
+      ]
+    }
+  ],
+  "configuration": {
+    "speed_limit_kmh": 50.0,
+    "pixel_to_meter": 0.05,
+    "min_tracked_frames": 8,
+    "frame_skip": 1,
+    "vehicle_confidence": 0.35,
+    "plate_confidence": 0.25,
+    "ocr_confidence": 0.5
   }
 }
 ```
 
----
-
-## 🧪 Testing
-
-### Health Checks
-```bash
-# AI Service
-curl http://localhost:8000/health
-
-# Backend
-curl http://localhost:8080/health
-```
-
-### Upload Test Video
-```bash
-curl -X POST http://localhost:8080/api/upload-video \
-  -F "video=@test_video.mp4"
-```
+**Key Changes from v1.0**:
+- `violations` is now an array (not object) with full metadata
+- Added `tracked_vehicles` array with complete tracking data
+- Added `summary` object with aggregated statistics
+- Added `video_info` with processing metadata
+- Added confidence scores and validation status
+- Added severity classification (low/medium/high/critical)
 
 ---
 
-## 🐳 Docker Configuration
+## ✅ v1.5 Capabilities
 
-### docker-compose.yml Structure
-```yaml
-services:
-  traffic-ai-service:       # Port 8000
-  traffic-ktor-backend:     # Port 8080
-  traffic-frontend:         # Port 5173
-```
+### Detection & Recognition
+- ✅ YOLOv8-based vehicle detection
+- ✅ YOLOv8-based license plate detection
+- ✅ Multi-pass PaddleOCR with validation
+- ✅ Automatic OCR error correction
+- ✅ Pattern-based plate validation
 
-### Environment Variables
-- **Backend**: `KTOR_AI_ENDPOINT` - AI service URL
-- **Frontend**: `VITE_API_BASE` - Backend API URL
+### Tracking & Analysis
+- ✅ Centroid-based vehicle tracking
+- ✅ Pixel-based speed estimation
+- ✅ Violation severity classification
+- ✅ Confidence score tracking
+- ✅ Trajectory recording
 
----
+### User Interface
+- ✅ Modern, gradient-based design
+- ✅ Drag & drop video upload
+- ✅ Real-time progress tracking
+- ✅ Summary statistics dashboard
+- ✅ Interactive violations table
+- ✅ Expandable vehicle details
+- ✅ CSV export functionality
+- ✅ Responsive mobile design
 
-## ✅ v1.0 MVP Capabilities
-
-- ✅ Offline video processing
-- ✅ Vehicle detection (YOLO)
-- ✅ License plate detection (YOLO)
-- ✅ OCR plate recognition (PaddleOCR)
-- ✅ Vehicle tracking (Centroid-based)
-- ✅ Approximate speed estimation
-- ✅ Speed violation detection
-- ✅ End-to-end system integration
+### System Features
 - ✅ Docker containerization
-- ✅ Web dashboard
-- ✅ REST API with Swagger docs
+- ✅ Health check monitoring
+- ✅ Request correlation tracking
+- ✅ Enhanced error handling
+- ✅ Response validation
+- ✅ Comprehensive logging
 
 ---
 
-## 🚧 Known Limitations (v1.0)
+## ⚠️ Known Limitations (v1.5)
 
 - ⚠️ Speed estimation is pixel-based (not calibrated to real-world)
 - ⚠️ No authentication or user management
 - ⚠️ No database persistence
 - ⚠️ No real-time camera streams
 - ⚠️ CPU-only processing (no GPU acceleration)
-- ⚠️ Basic UI with minimal styling
 - ⚠️ No video history or filtering
 
 ---
 
 ## 🚀 Roadmap
 
-### 📦 v1.5 — Stabilization & Enhancements (Next)
-**Focus**: Improve accuracy, UX, and code quality
-
-**AI Improvements**:
-- [ ] Enhanced OCR post-processing
-- [ ] Automatic plate correction (regex validation)
-- [ ] YOLO confidence threshold tuning
-- [ ] Improved tracking stability
-- [ ] Better error handling
-
-**Backend Improvements**:
-- [ ] Enhanced logging
-- [ ] Better error messages
-- [ ] API response optimization
-- [ ] Code cleanup and refactoring
-
-**Frontend Improvements**:
-- [ ] Professional UI design
-- [ ] Better loading indicators
-- [ ] Improved error messages
-- [ ] Responsive design
-- [ ] Video format validation
-
----
-
-### 📦 v2.0 — Functional Complete Version
-**Focus**: Production-ready features
+### 📦 v2.0 — Database & Authentication (Next)
+**Focus**: Persistence and security
 
 **Features**:
 - [ ] PostgreSQL database integration
 - [ ] User authentication (JWT)
-- [ ] Admin dashboard
-- [ ] Violation history & filtering
-- [ ] Statistics & charts
-- [ ] Export reports (PDF/CSV)
+- [ ] User management and roles
+- [ ] Violation history storage
+- [ ] Advanced filtering and search
+- [ ] Statistics and analytics
+- [ ] Report generation (PDF/CSV)
 - [ ] Real-world speed calibration (homography)
-- [ ] Multi-lane support
 
 ---
 
-### 📦 v3.0 — Advanced/Production Version
-**Focus**: Real-time and enterprise features
+### 📦 v3.0 — Real-time & Production
+**Focus**: Live monitoring and scalability
 
 **Features**:
 - [ ] Live camera streams (RTSP)
@@ -371,6 +355,34 @@ services:
 - [ ] Monitoring & observability (Grafana, Prometheus)
 - [ ] Kubernetes deployment
 - [ ] HTTPS & NGINX reverse proxy
+- [ ] Rate limiting and caching
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+All services can be configured via environment variables. See `.env.example` for details.
+
+**Key Configuration**:
+```bash
+# Speed Detection
+SPEED_LIMIT=50.0              # Speed limit in km/h
+PIXEL_TO_METER=0.05           # Calibration factor
+
+# Detection Confidence
+VEHICLE_CONFIDENCE=0.35       # Vehicle detection threshold
+PLATE_CONFIDENCE=0.25         # Plate detection threshold
+OCR_CONFIDENCE=0.5            # OCR confidence threshold
+
+# OCR Enhancement
+OCR_MULTI_PASS=true           # Enable multi-pass OCR
+OCR_MAX_ATTEMPTS=3            # Max OCR attempts
+
+# Processing
+FRAME_SKIP=1                  # Process every N frames
+MIN_TRACKED_FRAMES=8          # Minimum frames for speed calculation
+```
 
 ---
 
@@ -378,57 +390,104 @@ services:
 
 ### Docker Issues
 
-**Problem**: Containers won't start
+**Services won't start**:
 ```bash
-# Check Docker is running
-docker --version
-docker-compose --version
-
-# Check for port conflicts
-lsof -i :5173  # Frontend
-lsof -i :8080  # Backend
-lsof -i :8000  # AI Service
-
-# Rebuild from scratch
 docker-compose down -v
 docker-compose build --no-cache
 docker-compose up
 ```
 
-**Problem**: AI Service takes too long
+**Port conflicts**:
+```bash
+# Check for processes using ports
+lsof -i :5173  # Frontend
+lsof -i :8080  # Backend
+lsof -i :8000  # AI Service
+```
+
+**AI Service timeout**:
 - Use shorter test videos (30-60 seconds)
 - Reduce video resolution
-- Consider GPU support in v2.0
+- Check AI service logs: `docker logs traffic-ai-service`
 
-**Problem**: Frontend can't connect to backend
+### Frontend Issues
+
+**Cannot connect to backend**:
 ```bash
-# Check backend is accessible
+# Check backend health
 curl http://localhost:8080/health
 
-# Check CORS settings in Ktor backend
-# Verify VITE_API_BASE in frontend .env
+# Check detailed health (including AI service)
+curl http://localhost:8080/health/detailed
 ```
+
+**Upload fails**:
+- Ensure video format is supported (.mp4, .avi, .mov, .mkv)
+- Check file size (max 200 MB)
+- Verify backend logs for errors
 
 ---
 
 ## 📊 Performance Notes
 
 ### Video Processing Times (CPU-only)
-- 30-second video: ~45-90 seconds
-- 1-minute video: ~90-180 seconds
-- 2-minute video: ~180-360 seconds
+- 30-second video (720p): ~45-90 seconds
+- 1-minute video (720p): ~90-180 seconds
+- 2-minute video (720p): ~180-360 seconds
 
-**Note**: Processing time depends on:
-- Video resolution
-- Number of vehicles
-- Frame rate
+**Factors affecting performance**:
+- Video resolution (720p recommended)
+- Number of vehicles in frame
+- Frame rate (30 fps optimal)
 - CPU performance
+
+**Optimization tips**:
+- Use H.264 encoded videos
+- Reduce resolution if processing is slow
+- Adjust `FRAME_SKIP` to process every 2nd frame
+- Ensure adequate CPU resources in Docker
+
+---
+
+## 🧪 Testing
+
+### Health Checks
+```bash
+# Backend basic health
+curl http://localhost:8080/health
+
+# Backend detailed health (includes AI service)
+curl http://localhost:8080/health/detailed
+
+# AI service health
+curl http://localhost:8000/health
+```
+
+### Upload Test Video
+```bash
+curl -X POST http://localhost:8080/api/upload-video \
+  -F "video=@test_video.mp4"
+```
+
+### Summary-only endpoint (faster)
+```bash
+curl -X POST http://localhost:8080/api/upload-video/summary \
+  -F "video=@test_video.mp4"
+```
+
+---
+
+## 📖 Documentation
+
+- [AI Service Documentation](./ai-service/README.md) - OCR, detection, tracking
+- [Backend Documentation](./ktor-backend/README.md) - API, error handling, health
+- [Frontend Documentation](./dashboard-frontend/README.md) - UI, components, styling
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **YOLOv8** (Ultralytics) - Object detection
+- **YOLOv8** (Ultralytics) - Object detection framework
 - **PaddleOCR** - Optical character recognition
 - **Ktor** - Kotlin web framework
 - **FastAPI** - Python web framework
@@ -436,11 +495,5 @@ curl http://localhost:8080/health
 
 ---
 
-## 📖 Documentation
-
-- [AI Service Documentation](./ai-service/README.md)
-- [Backend Documentation](./ktor-backend/README.md)
-- [Frontend Documentation](./dashboard-frontend/README.md)
----
-
-**Ready to move to v1.5? See the roadmap section above for next steps!** 🚀
+**System Status**: v1.5 Stabilization Complete ✅  
+**Ready for**: v2.0 Database Integration 🚀

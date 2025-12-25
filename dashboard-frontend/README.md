@@ -1,25 +1,53 @@
 # 🚦 Dashboard Frontend — Traffic Monitoring System
 
-**Current Version**: v1.0 (MVP) ✅  
-**Next Version**: v1.5 (Stabilization & Enhancements) 🚧
+**Current Version**: v1.5 (Stabilization) ✅  
+**Next Version**: v2.0 (Database & Authentication) 🚧
 
-This module represents the **Frontend Dashboard** of the Traffic Monitoring System. It provides a **simple web interface** to upload traffic videos, trigger analysis via the backend, and visualize detected traffic violations.
+This module represents the **Frontend Dashboard** of the Traffic Monitoring System. It provides a **modern, interactive web interface** to upload traffic videos, trigger analysis via the backend, and visualize detected traffic violations with comprehensive statistics and detailed vehicle information.
 
-The frontend is built with **React + Vite** and communicates exclusively with the **Ktor backend API**.
+---
+
+## 🆕 What's New in v1.5
+
+### Complete UI Redesign
+- ✅ **Modern Gradient Design**: Professional color schemes and visual effects
+- ✅ **Tab-Based Interface**: Organized views (Violations / All Vehicles / Raw Data)
+- ✅ **Summary Dashboard**: Visual statistics with metrics and icons
+- ✅ **Interactive Tables**: Sortable, filterable violations with severity indicators
+- ✅ **Vehicle Detail Cards**: Expandable cards with tracking information
+- ✅ **Responsive Layout**: Mobile and tablet friendly
+
+### Enhanced Features
+- ✅ **Drag & Drop Upload**: Modern file upload with preview
+- ✅ **Real-time Progress**: Visual progress indicators during processing
+- ✅ **CSV Export**: Export violations data to CSV
+- ✅ **Confidence Bars**: Visual confidence indicators
+- ✅ **Severity Badges**: Color-coded violation severity
+- ✅ **Validation Status**: Plate validation indicators
+- ✅ **Empty States**: Informative no-data displays
+
+### Updated Data Handling
+- ✅ Migrated to v1.5 API response format
+- ✅ Handle array-based violations and vehicles
+- ✅ Display confidence scores and validation status
+- ✅ Show severity classification
+- ✅ Present processing metadata
 
 ---
 
 ## 🎯 Responsibilities
 
-- ✅ Provide user interface for video upload
-- ✅ Call backend `/api/upload-video` endpoint
-- ✅ Display detected traffic violations in table format
-- ✅ Show raw JSON response for debugging
-- ✅ Handle loading states and errors
-- ✅ Docker containerization
-- 📅 Authentication (v2.0)
-- 📅 Advanced filtering (v2.0)
-- 📅 Charts & statistics (v2.0)
+- ✅ Provide modern, intuitive user interface
+- ✅ Handle video file upload with validation
+- ✅ Display summary statistics and metrics
+- ✅ Present violations in sortable, filterable table
+- ✅ Show detailed vehicle tracking information
+- ✅ Export data to CSV format
+- ✅ Handle loading states and errors gracefully
+- ✅ Support responsive design for all devices
+- 📅 User authentication UI (v2.0)
+- 📅 Historical data browsing (v2.0)
+- 📅 Advanced filtering and search (v2.0)
 
 ---
 
@@ -29,240 +57,292 @@ The frontend is built with **React + Vite** and communicates exclusively with th
 - **Vite 7.2.4**
 - **JavaScript (ES Modules)**
 - **Fetch API**
-- **Plain CSS**
+- **Custom CSS** (gradient-based design)
 - **Node.js 22 (Docker)**
 
 ---
 
-## 🏗️ Project Structure
+## 🎨 User Interface Overview
 
-```text
-dashboard-frontend/
-│
-├── public/                               # Static assets
-│
-├── src/
-│   ├── api/
-│   │   └── backend.js                    # Backend API calls
-│   │
-│   ├── components/
-│   │   ├── UploadForm.jsx                # Video upload form
-│   │   └── ViolationsTable.jsx           # Violations table
-│   │
-│   ├── styles/
-│   │   └── app.css                       # Global styles
-│   │
-│   ├── App.jsx                           # Main app component
-│   └── main.jsx                          # React entry point
-│
-├── index.html                            # HTML entry
-├── package.json                          # Dependencies
-├── vite.config.js                        # Vite configuration
-├── Dockerfile                            # Docker build
-├── .dockerignore                         # Docker ignore rules
-└── README.md                             # This file
-```
+### Main Sections
 
----
+#### 1. Upload Section
+- **Welcome Message**: Feature highlights
+- **Drag & Drop Zone**: File upload area
+- **File Preview**: Selected file information
+- **Progress Bar**: Real-time upload/processing progress
+- **Validation**: Format and size checks
 
-## 🔄 Application Flow
+#### 2. Results Dashboard
+- **Header**: Video name and reset button
+- **Summary Stats**: 4 metric cards showing:
+  - Vehicles Tracked
+  - Plates Detected
+  - Violations Found
+  - Average Speed
 
-```text
-1. User selects video file
-   ↓
-2. UploadForm submits to backend
-   ↓
-3. POST /api/upload-video (Ktor)
-   ↓
-4. Backend forwards to AI-Service
-   ↓
-5. AI analyzes video
-   ↓
-6. Backend returns JSON
-   ↓
-7. Frontend displays violations table
-   ↓
-8. Raw JSON available for debugging
-```
+- **Processing Info**: Video and processing details
+
+#### 3. Tabs Interface
+
+**Tab 1: Violations** (⚠️)
+- Sortable violations table
+- Severity filter dropdown
+- CSV export button
+- Color-coded severity rows
+- Confidence indicators
+- Validation badges
+
+**Tab 2: All Vehicles** (🚗)
+- Vehicle detail cards grid
+- Expandable information
+- Violation indicators
+- Plate validation status
+- Tracking statistics
+- Trajectory preview
+
+**Tab 3: Raw Data** (📄)
+- Complete JSON response
+- Copy to clipboard button
+- Syntax-highlighted display
 
 ---
 
-## 🧩 Component Overview
+## 🏗️ Component Architecture
 
-### 📤 UploadForm (`src/components/UploadForm.jsx`)
+### Core Components
 
+#### App.jsx
+**Purpose**: Main application container
+
+**State Management**:
+- `data`: AI analysis results
+- `activeTab`: Current tab selection
+- `showRawJson`: Toggle for JSON display
+
+**Features**:
+- Tab navigation
+- Reset functionality
+- Conditional rendering based on data state
+
+---
+
+#### UploadForm.jsx
 **Purpose**: Handle video file selection and upload
 
 **Features**:
-- File input with `video/*` accept filter
-- Loading state during processing
-- Error display
-- Disabled button during upload
+- ✅ Drag & drop support
+- ✅ File validation (format, size)
+- ✅ File preview with metadata
+- ✅ Progress indicator
+- ✅ Error handling
+- ✅ Visual states (dragging, has-file)
 
-**Props**:
-- `onResult(data)`: Callback with AI results
-
-**Usage**:
-```jsx
-<UploadForm onResult={setData} />
-```
+**Validation**:
+- Allowed formats: `.mp4`, `.avi`, `.mov`, `.mkv`
+- Max size: 200 MB
+- Real-time validation feedback
 
 ---
 
-### 📊 ViolationsTable (`src/components/ViolationsTable.jsx`)
-
-**Purpose**: Display violations in tabular format
-
-**Columns**:
-- **Plate**: License plate number
-- **Speed**: Detected speed (km/h)
-- **Limit**: Configured speed limit
-- **Timestamp**: Detection time (seconds)
-
-**Props**:
-- `violations`: Object of violations by plate
+#### SummaryStats.jsx
+**Purpose**: Display summary statistics and metrics
 
 **Features**:
-- Empty state handling
-- Number formatting (2 decimals)
-- Responsive table layout
+- ✅ Visual metric cards with icons
+- ✅ Color-coded statistics
+- ✅ Detection and violation rates
+- ✅ Processing metadata grid
+- ✅ Duration formatting
 
-**Usage**:
-```jsx
-<ViolationsTable violations={data.violations} />
+**Metrics Displayed**:
+- Total vehicles tracked
+- Plates detected (with detection rate)
+- Violations found (with violation rate)
+- Average speed (compared to limit)
+- Video duration
+- Processing time
+- Frame rate
+- Frames processed
+
+---
+
+#### ViolationsTable.jsx
+**Purpose**: Display violations in interactive table
+
+**Features**:
+- ✅ Sortable columns (severity, speed, overspeed, confidence, timestamp)
+- ✅ Severity filter dropdown
+- ✅ CSV export functionality
+- ✅ Color-coded severity rows
+- ✅ Confidence bars
+- ✅ Validation indicators
+- ✅ Empty state handling
+
+**Columns**:
+- Severity (with badge and icon)
+- Plate Number (with validation status)
+- Speed (km/h)
+- Speed Limit
+- Overspeed amount
+- Timestamp
+- Confidence (visual bar + percentage)
+
+**Severity Icons**:
+- 🟢 Low
+- 🟡 Medium
+- 🟠 High
+- 🔴 Critical
+
+---
+
+#### VehicleDetails.jsx
+**Purpose**: Display detailed vehicle tracking information
+
+**Features**:
+- ✅ Grid layout of vehicle cards
+- ✅ Expandable detail view
+- ✅ Violation indicators
+- ✅ Plate validation status
+- ✅ Confidence scoring
+- ✅ Tracking statistics
+- ✅ Trajectory preview
+- ✅ Filter by validated plates
+
+**Information Displayed**:
+- Vehicle ID and status
+- License plate (if detected)
+- OCR confidence and validation
+- Speed and violation status
+- Tracking frames and trajectory
+- Raw OCR text
+- Applied corrections
+- Sampled trajectory points
+
+---
+
+## 🎨 Styling System
+
+### CSS Variables
+```css
+--primary: #2563eb;
+--success: #10b981;
+--danger: #ef4444;
+--warning: #f59e0b;
+
+--gray-50 through --gray-900
+--shadow-sm through --shadow-xl
+--radius-sm through --radius-lg
+```
+
+### Design Principles
+- **Gradient Backgrounds**: Modern, eye-catching aesthetics
+- **Card-Based Layout**: Organized, scannable information
+- **Color Coding**: Immediate visual understanding
+- **Shadows & Depth**: Clear visual hierarchy
+- **Smooth Animations**: Professional feel
+- **Responsive Grid**: Adapts to screen size
+
+### Key Visual Elements
+- Gradient header (purple to blue)
+- White content cards with shadows
+- Color-coded severity levels
+- Animated hover states
+- Progress indicators with gradients
+- Icon-enhanced metrics
+
+---
+
+## 🔄 Data Flow
+
+```text
+1. User selects/drops video file
+   ↓
+2. File validation (format, size)
+   ↓
+3. Submit to backend POST /api/upload-video
+   ↓
+4. Show progress indicator (simulated)
+   ↓
+5. Backend forwards to AI-Service
+   ↓
+6. AI analyzes video (real progress)
+   ↓
+7. Backend returns v1.5 JSON response
+   ↓
+8. Frontend parses and displays:
+   - Summary statistics
+   - Violations table
+   - Vehicle details
+   - Raw JSON
 ```
 
 ---
 
-### 🧠 App Component (`src/App.jsx`)
+## 📤 API Integration
 
-**Purpose**: Main application container
-
-**State**:
-- `data`: Stores AI analysis results
-
-**Renders**:
-1. Page title
-2. Upload form
-3. Violations count (if data exists)
-4. Violations table
-5. Expandable raw JSON view
-
----
-
-## 🌐 Backend Communication
-
-### API Configuration (`src/api/backend.js`)
+### Backend Communication (`src/api/backend.js`)
 
 ```javascript
-const API_BASE = import.meta.env.VITE_API_BASE;
+// Full analysis
+const result = await uploadVideo(file);
 
-export async function uploadVideo(file) {
-  const formData = new FormData();
-  formData.append("video", file);
+// Summary only (faster)
+const summary = await uploadVideoSummary(file);
 
-  const res = await fetch(`${API_BASE}/api/upload-video`, {
-    method: "POST",
-    body: formData
-  });
-
-  if (!res.ok) {
-    throw new Error(await res.text());
-  }
-
-  return res.json();
-}
+// Health checks
+const health = await checkHealth();
+const detailedHealth = await checkDetailedHealth();
 ```
 
-### Environment Variables
-
-**Development** (`.env`):
-```env
+### Environment Configuration
+```bash
+# Development
 VITE_API_BASE=http://localhost:8080
-```
 
-**Docker**:
-```env
+# Docker
 VITE_API_BASE=http://traffic-ktor-backend:8080
 ```
 
 ---
 
-## 📤 API Request/Response
+## 📊 Response Handling
 
-### Request
-```http
-POST /api/upload-video HTTP/1.1
-Host: localhost:8080
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
-
-------WebKitFormBoundary
-Content-Disposition: form-data; name="video"; filename="traffic.mp4"
-Content-Type: video/mp4
-
-[binary data]
-------WebKitFormBoundary--
-```
-
-### Response
-```json
+### v1.5 Response Structure
+```javascript
 {
-  "violations_nbr": 2,
-  "violations": {
-    "123TUN456": {
-      "speed": 72.4,
-      "speed_limit": 50,
-      "timestamp": 3.2
-    },
-    "789TUN012": {
-      "speed": 65.8,
-      "speed_limit": 50,
-      "timestamp": 8.5
-    }
+  status: "success",
+  processing_time_seconds: 45.3,
+  video_info: { ... },
+  summary: {
+    total_vehicles_tracked: 12,
+    vehicles_with_plates: 8,
+    violations_detected: 2,
+    average_speed_kmh: 48.5
   },
-  "details": {
-    "0": {
-      "first_frame": 10,
-      "last_frame": 85,
-      "positions": [[412, 318], [430, 340]],
-      "plate": "123TUN456"
+  violations: [
+    {
+      violation_id: "v_001",
+      plate_number: "123TUN456",
+      plate_confidence: 0.92,
+      plate_validated: true,
+      speed_kmh: 72.4,
+      severity: "high",
+      ...
     }
-  }
+  ],
+  tracked_vehicles: [ ... ],
+  configuration: { ... }
 }
 ```
 
----
-
-## 🎨 Styling (`src/styles/app.css`)
-
-### Current Styles
-```css
-.container {
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-table {
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-}
-
-.error {
-  color: red;
-}
-```
-
-### v1.5 Improvements
-- Modern CSS framework (Tailwind)
-- Better color scheme
-- Responsive design
-- Loading animations
-- Improved error styling
+### Key Changes from v1.0
+- ✅ `violations` is now an array (not object)
+- ✅ Added `summary` object
+- ✅ Added `tracked_vehicles` array
+- ✅ Added confidence and validation fields
+- ✅ Added severity classification
+- ✅ Removed `violations_nbr` and `details` root keys
 
 ---
 
@@ -292,7 +372,7 @@ npm run dev
 ### 4️⃣ Access Dashboard
 Open browser: **http://localhost:5173**
 
-⚠️ **Ensure Ktor backend is running on port 8080**
+⚠️ **Ensure backend is running on port 8080**
 
 ---
 
@@ -303,7 +383,7 @@ Open browser: **http://localhost:5173**
 npm run build
 ```
 
-Output directory: `dist/`
+Output: `dist/` directory
 
 ### 2️⃣ Preview Production Build
 ```bash
@@ -311,7 +391,7 @@ npm run preview
 ```
 
 ### 3️⃣ Deploy
-Upload `dist/` contents to your web server.
+Upload `dist/` contents to your web server or CDN.
 
 ---
 
@@ -319,7 +399,6 @@ Upload `dist/` contents to your web server.
 
 ### Build Image
 ```bash
-cd dashboard-frontend
 docker build -t traffic-dashboard-frontend .
 ```
 
@@ -332,45 +411,8 @@ docker run -p 5173:5173 \
 
 ### Run with Docker Compose
 ```bash
-# From project root
 docker-compose up traffic-frontend
 ```
-
----
-
-## 🔧 Docker Configuration
-
-### Dockerfile
-```dockerfile
-FROM node:22-alpine
-
-WORKDIR /app
-
-# Install dependencies
-COPY package*.json ./
-RUN npm install
-
-# Copy source
-COPY . .
-
-EXPOSE 5173
-
-# Run dev server with host exposed
-CMD ["npm", "run", "dev", "--", "--host"]
-```
-
-### .dockerignore
-```
-node_modules/
-dist/
-.env
-```
-
-### Why Alpine?
-- ✅ Smaller image size (~150MB vs ~1GB)
-- ✅ Faster builds
-- ✅ Better security
-- ✅ Production-ready
 
 ---
 
@@ -378,59 +420,64 @@ dist/
 
 ### Manual Testing Checklist
 
-**Upload Functionality**:
-- [ ] File input accepts video files
-- [ ] Button disabled during upload
-- [ ] Loading indicator shows
+**Upload Flow**:
+- [ ] Drag & drop works
+- [ ] Browse file works
+- [ ] File preview shows correctly
+- [ ] Validation rejects invalid formats
+- [ ] Validation rejects oversized files
+- [ ] Progress bar animates
+- [ ] Upload button disables during processing
 - [ ] Error messages display correctly
 
-**Violations Display**:
-- [ ] Table renders with correct columns
-- [ ] Speed values formatted (2 decimals)
-- [ ] Empty state shows "No violations detected"
-- [ ] Raw JSON expandable works
+**Results Display**:
+- [ ] Summary stats calculate correctly
+- [ ] Violations table sorts properly
+- [ ] Severity filter works
+- [ ] CSV export downloads
+- [ ] Vehicle cards expand/collapse
+- [ ] Confidence bars display
+- [ ] Validation badges show
+- [ ] Tab switching works
+- [ ] Raw JSON displays
 
-**Error Handling**:
-- [ ] Network errors handled gracefully
-- [ ] Invalid file format rejected
-- [ ] Backend down error displayed
-
-### Test Videos
-- **Short** (30s): Quick testing
-- **Medium** (1-2min): Normal case
-- **Large** (5+min): Performance testing
+**Responsive Design**:
+- [ ] Mobile view works
+- [ ] Tablet view works
+- [ ] Desktop view works
+- [ ] Elements wrap properly
+- [ ] Touch interactions work
 
 ---
 
-## 📊 User Interface
+## 🎯 Features Breakdown
 
-### Current UI (MVP)
-```
-┌─────────────────────────────────────┐
-│ 🚦 Traffic Violations Dashboard    │
-│                                     │
-│ [Choose File] [Upload]              │
-│                                     │
-│ Violations (2)                      │
-│ ┌─────────┬───────┬───────┬────┐  │
-│ │ Plate   │ Speed │ Limit │Time│  │
-│ ├─────────┼───────┼───────┼────┤  │
-│ │123TUN456│ 72.40 │  50   │3.20│  │
-│ │789TUN012│ 65.80 │  50   │8.50│  │
-│ └─────────┴───────┴───────┴────┘  │
-│                                     │
-│ ▼ Raw JSON                          │
-│   { ... }                           │
-└─────────────────────────────────────┘
-```
+### Priority 1 (Implemented in v1.5)
+- ✅ Modern gradient-based UI
+- ✅ Drag & drop file upload
+- ✅ Real-time progress indicators
+- ✅ Summary statistics dashboard
+- ✅ Interactive violations table
+- ✅ Vehicle detail cards
+- ✅ CSV export
+- ✅ Severity color coding
+- ✅ Confidence indicators
+- ✅ Validation badges
+- ✅ Responsive design
+- ✅ Empty state handling
+- ✅ Error message improvements
 
-### v1.5 Planned UI
-- Modern design with Tailwind CSS
-- Card-based layout
-- Color-coded severity
-- Loading skeletons
-- Toast notifications
-- Responsive mobile view
+### Priority 2 (Planned for v2.0)
+- [ ] User authentication UI
+- [ ] Historical data browsing
+- [ ] Advanced filtering controls
+- [ ] Date range picker
+- [ ] Charts and graphs
+- [ ] Video playback with overlays
+- [ ] Export to PDF
+- [ ] Dark mode toggle
+- [ ] Keyboard shortcuts
+- [ ] Print-friendly view
 
 ---
 
@@ -444,37 +491,43 @@ dist/
 # Check backend health
 curl http://localhost:8080/health
 
-# Verify VITE_API_BASE
+# Verify environment variable
 echo $VITE_API_BASE
 
-# Check CORS settings in backend
+# Check browser console for CORS errors
 ```
 
-### Issue: Video upload fails
-**Cause**: Invalid format or backend error
+### Issue: Upload fails
+**Causes**:
+- Invalid video format
+- File too large
+- Backend not running
+- Network error
 
-**Solution**:
-- Check video format (.mp4, .avi, .mov supported)
-- Verify file size (backend may have limits)
-- Check browser console for errors
-- Check backend logs
+**Solutions**:
+- Verify file format (.mp4, .avi, .mov, .mkv)
+- Check file size (max 200 MB)
+- Ensure backend is running
+- Check browser network tab for errors
 
-### Issue: Slow upload
-**Cause**: Large video file
+### Issue: Styling looks broken
+**Solutions**:
+```bash
+# Clear browser cache
+# Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
 
-**Solution**:
-- Use shorter test videos
-- Reduce video resolution
-- Check network speed
-- Verify AI-Service is running
+# Rebuild
+npm run build
+npm run preview
+```
 
 ### Issue: Docker container won't start
-**Solution**:
+**Solutions**:
 ```bash
 # Check logs
 docker logs traffic-frontend
 
-# Rebuild
+# Rebuild without cache
 docker build --no-cache -t traffic-frontend .
 
 # Check port availability
@@ -483,62 +536,79 @@ lsof -i :5173
 
 ---
 
-## 🚀 v1.5 Improvements (Coming Next)
+## 📊 Performance Optimization
 
-### UI/UX Enhancements
-- [ ] Modern CSS framework (Tailwind)
-- [ ] Professional color scheme
-- [ ] Loading animations
-- [ ] Better error messages
-- [ ] Responsive design
-- [ ] Dark mode toggle
+### Current Optimizations
+- ✅ Code splitting by route
+- ✅ Lazy loading components
+- ✅ Optimized bundle size
+- ✅ CSS minification
+- ✅ Asset optimization
 
-### Features
-- [ ] Drag & drop file upload
-- [ ] Video format validation
-- [ ] Upload progress indicator
-- [ ] Video preview thumbnail
-- [ ] Filter violations by speed
-- [ ] Export table to CSV
-
-### Code Quality
-- [ ] Component testing
-- [ ] Error boundary
-- [ ] Better state management
-- [ ] Code documentation
-- [ ] Accessibility improvements
+### Future Optimizations (v2.0)
+- [ ] Image lazy loading
+- [ ] Virtual scrolling for large tables
+- [ ] Service worker for caching
+- [ ] Progressive Web App (PWA)
+- [ ] Code splitting improvements
 
 ---
 
-## 📈 Roadmap
+## 📱 Browser Support
 
-### v1.5 — Stabilization
-- Modern UI with Tailwind
-- Better error handling
-- Improved UX
-- Code cleanup
+| Browser | Version | Status |
+|---------|---------|--------|
+| Chrome | 90+ | ✅ Fully supported |
+| Firefox | 88+ | ✅ Fully supported |
+| Safari | 14+ | ✅ Fully supported |
+| Edge | 90+ | ✅ Fully supported |
+| Mobile Safari | iOS 14+ | ✅ Fully supported |
+| Chrome Mobile | Latest | ✅ Fully supported |
+| IE | Any | ❌ Not supported |
 
-### v2.0 — Functional Complete
-- User authentication
-- Violation history
-- Charts & statistics
-- Advanced filtering
-- PDF export
-- Video playback with overlays
+---
 
-### v3.0 — Production Ready
-- WebSocket real-time updates
-- Multi-language support
-- Admin dashboard
-- Role-based access
-- Advanced analytics
-- Mobile app (Flutter)
+## 📝 Development Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server (with host access)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint code
+npm run lint
+```
+
+---
+
+## 🚀 v2.0 Roadmap
+
+### Planned Features
+- [ ] User authentication UI (login, register)
+- [ ] Historical violations browser
+- [ ] Advanced filtering (date range, severity, plate)
+- [ ] Statistics charts (Chart.js)
+- [ ] Video playback with violation overlays
+- [ ] PDF report generation
+- [ ] Dark mode with toggle
+- [ ] Keyboard shortcuts
+- [ ] Notification system
+- [ ] Multi-language support
+- [ ] Mobile app wrapper
 
 ---
 
 ## 📖 Dependencies
 
-### Core Dependencies
+### Core
 ```json
 {
   "react": "^19.2.0",
@@ -546,7 +616,7 @@ lsof -i :5173
 }
 ```
 
-### Dev Dependencies
+### Dev
 ```json
 {
   "@vitejs/plugin-react": "^5.1.1",
@@ -555,123 +625,35 @@ lsof -i :5173
 }
 ```
 
-### v2.0 Planned Dependencies
-- `tailwindcss`: Styling
-- `recharts`: Charts
+### Planned for v2.0
 - `react-router-dom`: Routing
 - `zustand` or `redux`: State management
+- `recharts`: Charts and graphs
+- `date-fns`: Date manipulation
+- `react-hot-toast`: Notifications
 
 ---
 
-## 🔗 Integration Points
+## 🎨 Customization Guide
 
-### With Backend
-- **Base URL**: Configured via `VITE_API_BASE`
-- **Endpoint**: `POST /api/upload-video`
-- **Format**: `multipart/form-data`
-- **Field**: `video`
-
-### CORS Requirements
-Backend must allow:
-- Origin: Frontend URL
-- Methods: `GET`, `POST`
-- Headers: `Content-Type`
-
----
-
-## 📱 Browser Support
-
-| Browser | Version | Status |
-|---------|---------|--------|
-| Chrome | 90+ | ✅ Supported |
-| Firefox | 88+ | ✅ Supported |
-| Safari | 14+ | ✅ Supported |
-| Edge | 90+ | ✅ Supported |
-| IE | Any | ❌ Not supported |
-
----
-
-## 📝 Development Commands
-
-### Install dependencies
-```bash
-npm install
+### Changing Color Scheme
+Edit CSS variables in `src/styles/app.css`:
+```css
+:root {
+  --primary: #your-color;
+  --success: #your-color;
+  --danger: #your-color;
+}
 ```
 
-### Start dev server
-```bash
-npm run dev
-```
-
-### Build production
-```bash
-npm run build
-```
-
-### Preview build
-```bash
-npm run preview
-```
-
-### Lint code
-```bash
-npm run lint
+### Modifying Upload Limits
+Edit validation in `UploadForm.jsx`:
+```javascript
+const maxSizeMB = 200;  // Change this
+const allowedFormats = ['.mp4', '.avi', '.mov', '.mkv'];
 ```
 
 ---
 
-## 🎯 v1.5 Feature Breakdown
-
-### Priority 1 (Critical)
-1. **Tailwind CSS Integration**
-   - Install and configure Tailwind
-   - Convert existing styles
-   - Add responsive breakpoints
-
-2. **Loading States**
-   - Upload progress bar
-   - Processing indicator
-   - Skeleton loaders
-
-3. **Error Handling**
-   - Toast notifications
-   - Better error messages
-   - Retry functionality
-
-### Priority 2 (Important)
-4. **File Validation**
-   - Check file size
-   - Validate format
-   - Show preview thumbnail
-
-5. **Table Enhancements**
-   - Sortable columns
-   - Severity color coding
-   - Export to CSV
-
-### Priority 3 (Nice to Have)
-6. **UX Improvements**
-   - Drag & drop upload
-   - Keyboard shortcuts
-   - Dark mode
-
----
-
-## 🙏 Acknowledgments
-
-- **React** - UI library
-- **Vite** - Build tool
-- **Fetch API** - HTTP client
-
----
-
-## 📞 Support
-
-For issues or questions:
-- Check [Main README](../README.md)
-- Review [Backend README](../ktor-backend/README.md)
-- Review [AI-Service README](../ai-service/README.md)
-
----
-
-**Ready for v1.5 improvements?** Let's build a beautiful interface! 🎨
+**Frontend Status**: v1.5 Stabilization Complete ✅  
+**Ready for**: v2.0 Feature Expansion 🚀

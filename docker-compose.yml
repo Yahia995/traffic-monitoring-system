@@ -1,32 +1,173 @@
 services:
-
+  # ===== AI Service =====
   traffic-ai-service:
-    build: ./ai-service
+    build: 
+      context: ./ai-service
+      dockerfile: Dockerfile
     container_name: traffic-ai-service
+    hostname: ai-service
+    
     ports:
-      - "8000:8000"
-    env_file:
-      - ./ai-service/.env
+      - "${AI_SERVICE_PORT:-8000}:8000"
+    
+    environment:
+      # Model Paths
+      VEHICLE_MODEL_PATH: ${VEHICLE_MODEL_PATH:-models/vehicle_yolo.pt}
+      PLATE_MODEL_PATH: ${PLATE_MODEL_PATH:-models/plate_yolo.pt}
+      
+      # Speed Configuration
+      PIXEL_TO_METER: ${PIXEL_TO_METER:-0.05}
+      SPEED_LIMIT: ${SPEED_LIMIT:-50.0}
+      
+      # Processing Settings
+      FRAME_SKIP: ${FRAME_SKIP:-1}
+      MIN_TRACKED_FRAMES: ${MIN_TRACKED_FRAMES:-8}
+      
+      # Detection Confidence Thresholds
+      VEHICLE_CONFIDENCE: ${VEHICLE_CONFIDENCE:-0.35}
+      PLATE_CONFIDENCE: ${PLATE_CONFIDENCE:-0.25}
+      OCR_CONFIDENCE: ${OCR_CONFIDENCE:-0.5}
+      
+      # Tracking Settings
+      MAX_DISAPPEARED: ${MAX_DISAPPEARED:-60}
+      MAX_DISTANCE: ${MAX_DISTANCE:-70.0}
+      
+      # OCR Enhancement
+      OCR_MULTI_PASS: ${OCR_MULTI_PASS:-true}
+      OCR_MAX_ATTEMPTS: ${OCR_MAX_ATTEMPTS:-3}
+      
+      # Response Configuration
+      INCLUDE_TRAJECTORY: ${INCLUDE_TRAJECTORY:-true}
+      TRAJECTORY_SAMPLING: ${TRAJECTORY_SAMPLING:-10}
+      
+      # Upload Limits
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-200}
+    
+    volumes:
+      # Optional: Mount models directory for easy updates
+      - ./ai-service/models:/app/models:ro
+      # Optional: Persistent logs
+      - ai-logs:/app/logs
+    
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    
     restart: unless-stopped
+    
+    networks:
+      - traffic-network
+    
+    # Resource limits (adjust based on your hardware)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
 
+  # ===== Ktor Backend =====
   traffic-ktor-backend:
-    build: ./ktor-backend
+    build:
+      context: ./ktor-backend
+      dockerfile: Dockerfile
     container_name: traffic-ktor-backend
+    hostname: backend
+    
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
+    
     environment:
+      # AI Service Connection
+      # Docker uses service name, local dev uses localhost
       KTOR_AI_ENDPOINT: http://traffic-ai-service:8000/api/process-video
+      KTOR_AI_TIMEOUT_MS: ${KTOR_AI_TIMEOUT_MS:-600000}
+      
+      # Logging Level
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    
+    volumes:
+      # Optional: Persistent logs
+      - backend-logs:/app/logs
+    
     depends_on:
-      - traffic-ai-service
+      traffic-ai-service:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    
     restart: unless-stopped
+    
+    networks:
+      - traffic-network
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
+  # ===== Frontend Dashboard =====
   traffic-frontend:
-    build: ./dashboard-frontend
+    build:
+      context: ./dashboard-frontend
+      dockerfile: Dockerfile
+      args:
+        # Frontend uses backend service name in Docker
+        VITE_API_BASE: http://traffic-ktor-backend:8080
     container_name: traffic-frontend
+    hostname: frontend
+    
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT:-5173}:5173"
+    
     depends_on:
-      - traffic-ktor-backend
-    environment:
-      VITE_API_BASE: http://traffic-ktor-backend:8080
+      traffic-ktor-backend:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    
     restart: unless-stopped
+    
+    networks:
+      - traffic-network
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+# ===== Networks =====
+networks:
+  traffic-network:
+    driver: bridge
+    name: traffic-monitoring-network
+
+# ===== Volumes =====
+volumes:
+  ai-logs:
+    name: traffic-ai-logs
+  backend-logs:
+    name: traffic-backend-logs
