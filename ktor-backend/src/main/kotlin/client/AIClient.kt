@@ -133,7 +133,7 @@ class AIClient(
             throw e
         }
 
-        val elapsed = System.currentTimeMillis() - startTime
+        val elapsed = (System.currentTimeMillis() - startTime) / 1000.0
 
         // Check response status
         if(!response.status.isSuccess()) {
