@@ -1,6 +1,7 @@
 package com.traffic
 
 import com.traffic.client.AIClient
+import com.traffic.dto.response.configureDatabase
 import com.traffic.plugins.*
 import io.ktor.server.application.Application
 import io.ktor.server.application.log
@@ -86,6 +87,10 @@ fun Application.module() {
 
     configureCallLogging()
     log.info("  ✓ Call logging configured")
+
+    // Initialize database (if enabled)
+    configureDatabase()
+    log.info("  ✓ Database configured")
 
     configureRouting(aiClient)
     log.info("  ✓ Routing configured")

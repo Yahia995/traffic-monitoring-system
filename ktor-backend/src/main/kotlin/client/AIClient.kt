@@ -1,6 +1,6 @@
 package com.traffic.client
 
-import com.traffic.models.AIResponse
+import com.traffic.dto.ai.AIResponse
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.engine.apache.*
@@ -15,7 +15,6 @@ import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.util.UUID
-import kotlin.math.round
 
 /**
  * Enhanced AI Client v1.5

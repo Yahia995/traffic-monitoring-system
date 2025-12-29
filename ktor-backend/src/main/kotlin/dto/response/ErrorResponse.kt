@@ -1,4 +1,4 @@
-package com.traffic.models
+package com.traffic.dto.response
 
 import kotlinx.serialization.Serializable
 

@@ -1,6 +1,6 @@
 package com.traffic.plugins
 
-import com.traffic.models.ErrorResponse
+import com.traffic.dto.response.ErrorResponse
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.ktor.server.application.*

@@ -32,6 +32,28 @@ dependencies {
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-status-pages:${ktor_version}")
 
+    // Database - Exposed ORM
+    implementation("org.jetbrains.exposed:exposed-core:0.44.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.44.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.44.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.44.1")
+
+    // PostgreSQL Driver
+    implementation("org.postgresql:postgresql:42.7.1")
+
+    // Connection Pool
+    implementation("com.zaxxer:HikariCP:5.1.0")
+
+    // Authentication (JWT)
+    implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
+
+    // Password Hashing
+    implementation("org.mindrot:jbcrypt:0.4")
+
+    // Validation
+    implementation("io.konform:konform-jvm:0.4.0")
+
     // Client
     implementation("io.ktor:ktor-client-core-jvm:${ktor_version}")
     implementation("io.ktor:ktor-client-apache-jvm:${ktor_version}")
@@ -42,4 +64,10 @@ dependencies {
 
     // Swagger
     implementation("io.ktor:ktor-server-swagger:${ktor_version}")
+
+    // Testing
+    testImplementation("io.ktor:ktor-server-test-host-jvm:$ktor_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("com.h2database:h2:2.2.224") // In-memory DB for tests
+    testImplementation("io.mockk:mockk:1.13.8")
 }

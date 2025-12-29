@@ -1,7 +1,7 @@
 package com.traffic.routes
 
 import com.traffic.client.AIClient
-import com.traffic.models.UploadResponseSummary
+import com.traffic.dto.ai.UploadResponseSummary
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*

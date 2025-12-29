@@ -1,7 +1,10 @@
 package com.traffic.routes
 
 import com.traffic.client.AIClient
-import com.traffic.models.HealthResponse
+import com.traffic.config.DatabaseConfig
+import com.traffic.dto.response.HealthDetailedResponse
+import com.traffic.dto.response.HealthResponse
+import com.traffic.dto.response.ServicesStatus
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
@@ -15,30 +18,50 @@ fun Route.healthRoutes(aiClient: AIClient) {
             HttpStatusCode.OK,
             HealthResponse(
                 status = "OK",
-                version = "1.5.0"
+                version = "2.0.0" // Updated version
             )
         )
     }
 
     get("/health/detailed") {
+        val enableV2 = System.getenv("ENABLE_V2_PERSISTENCE")?.toBoolean() ?: false
+
+        // Check AI service
         val aiHealthy = try {
             aiClient.healthCheck()
         } catch (e: Exception) {
             false
         }
 
-        val status = if (aiHealthy) "OK" else "DEGRADED"
-        val httpStatus = if (aiHealthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
+        // Check database (if enabled)
+        val dbHealthy = if (enableV2) {
+            try {
+                DatabaseConfig.isHealthy()
+            } catch (e: Exception) {
+                false
+            }
+        } else {
+            null // DB not enabled
+        }
+
+        val allHealthy = aiHealthy && (dbHealthy != false)
+        val status = if (allHealthy) "OK" else "DEGRADED"
+        val httpStatus = if (allHealthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
 
         call.respond(
             httpStatus,
-            mapOf(
-                "status" to status,
-                "version" to "1.5.0",
-                "timestamp" to System.currentTimeMillis(),
-                "services" to mapOf(
-                    "backend" to "OK",
-                    "ai_service" to if (aiHealthy) "OK" else "UNAVAILABLE"
+            HealthDetailedResponse(
+                status = status,
+                version = "2.0.0",
+                timestamp = System.currentTimeMillis(),
+                services =  ServicesStatus(
+                    backend = "OK",
+                    ai_service = if (aiHealthy) "OK" else "UNAVAILABLE",
+                    database = if (enableV2) {
+                        if (dbHealthy == true) "OK" else "UNAVAILABLE"
+                    } else {
+                        null
+                    }
                 )
             )
         )

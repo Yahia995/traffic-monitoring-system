@@ -1,4 +1,39 @@
 services:
+  # ===== PostgreSQL Service =====
+  traffic-postgres:
+    image: postgres:15-alpine
+    container_name: traffic-postgres
+    hostname: postgres
+    
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    
+    environment:
+      POSTGRES_DB: ${DB_NAME:-traffic_monitoring}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    restart: unless-stopped
+    
+    networks:
+      - traffic-network
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
   # ===== AI Service =====
   traffic-ai-service:
     build: 
@@ -90,6 +125,13 @@ services:
       
       # Logging Level
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Database Configuration
+      DB_HOST: traffic-postgres
+      DB_PORT: 5432
+      DB_NAME: traffic_monitoring
+      DB_USER: postgres
+      DB_PASSWORD: postgres
     
     volumes:
       # Optional: Persistent logs
@@ -171,3 +213,5 @@ volumes:
     name: traffic-ai-logs
   backend-logs:
     name: traffic-backend-logs
+  postgres-data:
+    name: traffic-postgres-data
