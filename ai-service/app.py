@@ -1,15 +1,11 @@
-"""
-Enhanced AI-Service FastAPI Application
-Version 1.5 - Improved response format and OCR
-"""
-
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import cv2
 import tempfile
 import logging
 import time
+import uuid
 from typing import Dict, List, Optional
 
 from detectors.vehicle_detector import VehicleDetector
@@ -23,8 +19,8 @@ from utils.speed_estimator import calculate_speed
 # Application Setup
 app = FastAPI(
     title="AI Traffic Detection Service",
-    version="1.5.0",
-    description="Enhanced traffic violation detection with improved OCR and response format"
+    version="2.0.0",
+    description="API service for processing traffic videos and detecting overspeeding vehicles."
 )
 
 app.add_middleware(
@@ -193,21 +189,15 @@ def get_configuration():
 
 
 @app.post("/api/process-video")
-async def process_video(video: UploadFile = File(...)):
-    """
-    Process traffic video and detect violations
-    
-    Enhanced v1.5 features:
-    - Improved OCR with validation
-    - Better response format
-    - Confidence tracking
-    - Multi-pass OCR option
-    """
+async def process_video(request: Request, video: UploadFile = File(...)):    
+    # Extract correlation ID from headers
+    correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
     
     start_time = time.time()
     
     logger.info(
-        "▶ Received video: filename='%s' content_type='%s'",
+        "[%s] ▶ Received video: filename='%s' content_type='%s'",
+        correlation_id,
         video.filename,
         video.content_type
     )
@@ -215,7 +205,8 @@ async def process_video(video: UploadFile = File(...)):
     # Validate video format
     if not video.filename.endswith(ALLOWED_EXT):
         logger.warning(
-            "❌ Invalid format: '%s' (allowed: %s)",
+            "[%s] ❌ Invalid format: '%s' (allowed: %s)",
+            correlation_id,
             video.filename,
             ALLOWED_EXT
         )
@@ -236,7 +227,7 @@ async def process_video(video: UploadFile = File(...)):
     tmp.close()
     size_mb = round(file_size / 1024 / 1024, 2)
     
-    logger.info("💾 Saved to '%s' (%.2f MB)", tmp.name, size_mb)
+    logger.info("[%s] 💾 Saved to '%s' (%.2f MB)", correlation_id, tmp.name, size_mb)
     
     # Open video
     cap = cv2.VideoCapture(tmp.name)
@@ -245,8 +236,8 @@ async def process_video(video: UploadFile = File(...)):
     duration = total_frames / fps if fps > 0 else 0
     
     logger.info(
-        "📹 Video info: fps=%.1f total_frames=%d duration=%.1fs",
-        fps, total_frames, duration
+        "[%s] 📹 Video info: fps=%.1f total_frames=%d duration=%.1fs",
+        correlation_id, fps, total_frames, duration
     )
     
     # Processing state
@@ -256,7 +247,7 @@ async def process_video(video: UploadFile = File(...)):
     ocr_results = {}  # vehicle_id -> OCRResult
     
     # Process frames
-    logger.info("🔄 Starting frame processing...")
+    logger.info("[%s] 🔄 Starting frame processing...", correlation_id)
     
     while True:
         ret, frame = cap.read()
@@ -279,8 +270,8 @@ async def process_video(video: UploadFile = File(...)):
         
         if processed_frames % 100 == 0:
             logger.debug(
-                "Frame %d/%d → detected=%d tracked=%d",
-                frame_id, total_frames, len(rects), len(vehicles)
+                "[%s] Frame %d/%d → detected=%d tracked=%d",
+                correlation_id, frame_id, total_frames, len(rects), len(vehicles)
             )
         
         # Update tracked vehicles
@@ -321,7 +312,8 @@ async def process_video(video: UploadFile = File(...)):
                         
                         if ocr_result.plate_number:
                             logger.debug(
-                                "🔍 Vehicle %s → Plate '%s' (conf=%.2f, valid=%s)",
+                                "[%s] 🔍 Vehicle %s → Plate '%s' (conf=%.2f, valid=%s)",
+                                correlation_id,
                                 vehicle_id,
                                 ocr_result.plate_number,
                                 ocr_result.confidence,
@@ -331,7 +323,7 @@ async def process_video(video: UploadFile = File(...)):
     cap.release()
     Path(tmp.name).unlink()
     
-    logger.info("✅ Frame processing complete")
+    logger.info("[%s] ✅ Frame processing complete", correlation_id)
     
     # Build Response
     violations = []
@@ -394,7 +386,8 @@ async def process_video(video: UploadFile = File(...)):
     processing_time = time.time() - start_time
     
     logger.info(
-        "📤 Results: vehicles=%d plates=%d violations=%d time=%.1fs",
+        "[%s] 📤 Results: vehicles=%d plates=%d violations=%d time=%.1fs",
+        correlation_id,
         len(tracked_vehicles),
         vehicles_with_plates,
         len(violations),
@@ -431,7 +424,7 @@ def root():
     """Root endpoint with API information"""
     return {
         "service": "AI Traffic Detection",
-        "version": "1.5.0",
+        "version": "2.0.0",
         "status": "operational",
         "endpoints": {
             "health": "/health",

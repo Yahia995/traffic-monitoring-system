@@ -1,5 +1,5 @@
 services:
-  # ===== PostgreSQL Service =====
+  # ===== PostgreSQL Database =====
   traffic-postgres:
     image: postgres:15-alpine
     container_name: traffic-postgres
@@ -17,11 +17,10 @@ services:
       - postgres-data:/var/lib/postgresql/data
     
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
     
     restart: unless-stopped
     
@@ -33,6 +32,9 @@ services:
         limits:
           cpus: '1'
           memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   # ===== AI Service =====
   traffic-ai-service:
@@ -89,7 +91,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 120s
+      start_period: 210s
     
     restart: unless-stopped
     
@@ -119,25 +121,38 @@ services:
     
     environment:
       # AI Service Connection
-      # Docker uses service name, local dev uses localhost
       KTOR_AI_ENDPOINT: http://traffic-ai-service:8000/api/process-video
       KTOR_AI_TIMEOUT_MS: ${KTOR_AI_TIMEOUT_MS:-600000}
       
-      # Logging Level
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-
       # Database Configuration
       DB_HOST: traffic-postgres
       DB_PORT: 5432
-      DB_NAME: traffic_monitoring
-      DB_USER: postgres
-      DB_PASSWORD: postgres
+      DB_NAME: ${DB_NAME:-traffic_monitoring}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      JWT_ISSUER: ${JWT_ISSUER:-traffic-monitoring-system}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-traffic-monitoring-api}
+      JWT_REALM: ${JWT_REALM:-Access to Traffic Monitoring API}
+      JWT_VALIDITY_MS: ${JWT_VALIDITY_MS:-3600000}
+      
+      # Feature Flags
+      ENABLE_V2_PERSISTENCE: ${ENABLE_V2_PERSISTENCE:-true}
+      ENABLE_AUTHENTICATION: ${ENABLE_AUTHENTICATION:-true}
+      
+      # Logging Level
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     
     volumes:
       # Optional: Persistent logs
       - backend-logs:/app/logs
     
     depends_on:
+      traffic-postgres:
+        condition: service_healthy
       traffic-ai-service:
         condition: service_healthy
     
@@ -146,7 +161,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 30s
     
     restart: unless-stopped
     
@@ -168,8 +183,9 @@ services:
       context: ./dashboard-frontend
       dockerfile: Dockerfile
       args:
-        # Frontend uses backend service name in Docker
         VITE_API_BASE: http://traffic-ktor-backend:8080
+        VITE_ENABLE_V2: ${VITE_ENABLE_V2:-true}
+        VITE_ENABLE_AUTH: ${VITE_ENABLE_AUTH:-true}
     container_name: traffic-frontend
     hostname: frontend
     
@@ -209,9 +225,9 @@ networks:
 
 # ===== Volumes =====
 volumes:
+  postgres-data:
+    name: traffic-postgres-data
   ai-logs:
     name: traffic-ai-logs
   backend-logs:
     name: traffic-backend-logs
-  postgres-data:
-    name: traffic-postgres-data

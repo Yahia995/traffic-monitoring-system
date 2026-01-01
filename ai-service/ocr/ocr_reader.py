@@ -1,8 +1,3 @@
-"""
-Enhanced OCR Reader with validation and error correction
-Version 1.5 - Improved accuracy and confidence tracking
-"""
-
 import cv2
 import re
 from paddleocr import PaddleOCR

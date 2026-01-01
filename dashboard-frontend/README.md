@@ -1,42 +1,47 @@
 # 🚦 Dashboard Frontend — Traffic Monitoring System
 
-**Current Version**: v1.5 (Stabilization) ✅  
-**Next Version**: v2.0 (Database & Authentication) 🚧
+**Current Version**: v2.0 (Authentication & History) ✅  
+**Previous Version**: v1.5 (Stabilization)
 
-This module represents the **Frontend Dashboard** of the Traffic Monitoring System. It provides a **modern, interactive web interface** to upload traffic videos, trigger analysis via the backend, and visualize detected traffic violations with comprehensive statistics and detailed vehicle information.
+This module represents the **Frontend Dashboard** of the Traffic Monitoring System. It provides a **modern, interactive web interface** with user authentication, video history, statistics, and comprehensive violation analysis.
 
 ---
 
-## 🆕 What's New in v1.5
+## 🆕 What's New in v2.0
 
-### Complete UI Redesign
-- ✅ **Modern Gradient Design**: Professional color schemes and visual effects
-- ✅ **Tab-Based Interface**: Organized views (Violations / All Vehicles / Raw Data)
-- ✅ **Summary Dashboard**: Visual statistics with metrics and icons
-- ✅ **Interactive Tables**: Sortable, filterable violations with severity indicators
-- ✅ **Vehicle Detail Cards**: Expandable cards with tracking information
-- ✅ **Responsive Layout**: Mobile and tablet friendly
+### Authentication UI
+- ✅ **Login Page**: Modern authentication interface
+- ✅ **Registration**: Self-service account creation
+- ✅ **Token Management**: Automatic JWT token storage
+- ✅ **Session Persistence**: Remember logged-in users
+- ✅ **Logout Functionality**: Secure session termination
+
+### Video History
+- ✅ **History Browser**: View all previously analyzed videos
+- ✅ **Pagination**: Navigate through large video collections
+- ✅ **Video Cards**: Rich metadata display with summaries
+- ✅ **Delete Functionality**: Remove unwanted videos
+- ✅ **Status Indicators**: Processing and AI status badges
+
+### Statistics Dashboard
+- ✅ **Overview Cards**: Key metrics at a glance
+- ✅ **Bar Charts**: Visual severity distribution
+- ✅ **Advanced Filters**: Search by multiple criteria
+- ✅ **Date Range**: Filter violations by time period
+- ✅ **Recent Violations**: Quick access to latest data
 
 ### Enhanced Features
-- ✅ **Drag & Drop Upload**: Modern file upload with preview
-- ✅ **Real-time Progress**: Visual progress indicators during processing
-- ✅ **CSV Export**: Export violations data to CSV
-- ✅ **Confidence Bars**: Visual confidence indicators
-- ✅ **Severity Badges**: Color-coded violation severity
-- ✅ **Validation Status**: Plate validation indicators
-- ✅ **Empty States**: Informative no-data displays
-
-### Updated Data Handling
-- ✅ Migrated to v1.5 API response format
-- ✅ Handle array-based violations and vehicles
-- ✅ Display confidence scores and validation status
-- ✅ Show severity classification
-- ✅ Present processing metadata
+- ✅ **Protected Routes**: Authentication required for uploads
+- ✅ **User Context**: All data scoped to logged-in user
+- ✅ **Navigation**: Tab-based interface (Upload/History/Stats)
+- ✅ **Export**: CSV download for violations
+- ✅ **Responsive**: Mobile and tablet friendly
 
 ---
 
 ## 🎯 Responsibilities
 
+### Core (V1.5)
 - ✅ Provide modern, intuitive user interface
 - ✅ Handle video file upload with validation
 - ✅ Display summary statistics and metrics
@@ -45,9 +50,14 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
 - ✅ Export data to CSV format
 - ✅ Handle loading states and errors gracefully
 - ✅ Support responsive design for all devices
-- 📅 User authentication UI (v2.0)
-- 📅 Historical data browsing (v2.0)
-- 📅 Advanced filtering and search (v2.0)
+
+### New in V2.0
+- ✅ **User Authentication**: Login and registration flows
+- ✅ **Session Management**: Token storage and validation
+- ✅ **Video History**: Browse past uploads with pagination
+- ✅ **Statistics**: Visual analytics and charts
+- ✅ **Advanced Filtering**: Multi-criteria violation search
+- ✅ **User Isolation**: Display only user's own data
 
 ---
 
@@ -57,6 +67,7 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
 - **Vite 7.2.4**
 - **JavaScript (ES Modules)**
 - **Fetch API**
+- **localStorage** (token persistence)
 - **Custom CSS** (gradient-based design)
 - **Node.js 22 (Docker)**
 
@@ -64,14 +75,30 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
 
 ## 🎨 User Interface Overview
 
+### Authentication Flow
+
+#### Login Page
+- Email/password form
+- Registration toggle
+- Error handling
+- Loading states
+- Secure password input
+
+#### Features After Login
+- User email display
+- Logout button
+- Token-based requests
+- Automatic re-authentication
+
 ### Main Sections
 
-#### 1. Upload Section
+#### 1. Upload Section (Tab 1)
 - **Welcome Message**: Feature highlights
 - **Drag & Drop Zone**: File upload area
 - **File Preview**: Selected file information
 - **Progress Bar**: Real-time upload/processing progress
 - **Validation**: Format and size checks
+- **Authentication**: JWT token included in requests
 
 #### 2. Results Dashboard
 - **Header**: Video name and reset button
@@ -80,31 +107,30 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
   - Plates Detected
   - Violations Found
   - Average Speed
-
 - **Processing Info**: Video and processing details
+- **Tabs**: Violations / All Vehicles / Raw Data
 
-#### 3. Tabs Interface
+#### 3. History Section (Tab 2) ⭐ NEW
+- **Video Grid**: Card-based layout
+- **Video Cards**: 
+  - Filename and upload date
+  - Duration, FPS, frame count
+  - Vehicle and violation summary
+  - Delete button
+  - Status badges
+- **Pagination**: Navigate through pages
+- **Empty State**: Friendly no-data message
 
-**Tab 1: Violations** (⚠️)
-- Sortable violations table
-- Severity filter dropdown
-- CSV export button
-- Color-coded severity rows
-- Confidence indicators
-- Validation badges
-
-**Tab 2: All Vehicles** (🚗)
-- Vehicle detail cards grid
-- Expandable information
-- Violation indicators
-- Plate validation status
-- Tracking statistics
-- Trajectory preview
-
-**Tab 3: Raw Data** (📄)
-- Complete JSON response
-- Copy to clipboard button
-- Syntax-highlighted display
+#### 4. Statistics Section (Tab 3) ⭐ NEW
+- **Overview Cards**: Total violations, average speed, severity counts
+- **Bar Chart**: Visual severity distribution
+- **Filter Panel**: 
+  - Severity dropdown
+  - Plate number search
+  - Date range picker
+  - Validation status
+- **Recent Violations Table**: Compact violation list
+- **Export Button**: Download CSV
 
 ---
 
@@ -112,23 +138,98 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
 
 ### Core Components
 
-#### App.jsx
-**Purpose**: Main application container
+#### AppV2.jsx (NEW)
+**Purpose**: Main V2 application container with authentication
 
 **State Management**:
+- `user`: Current user object
+- `token`: JWT authentication token
 - `data`: AI analysis results
-- `activeTab`: Current tab selection
-- `showRawJson`: Toggle for JSON display
+- `activeTab`: Current tab selection (violations/vehicles/raw)
+- `currentView`: Main view selection (upload/history/stats)
 
 **Features**:
-- Tab navigation
-- Reset functionality
-- Conditional rendering based on data state
+- Authentication flow handling
+- Token persistence in localStorage
+- Protected route logic
+- View navigation
+- Logout functionality
 
 ---
 
-#### UploadForm.jsx
-**Purpose**: Handle video file selection and upload
+#### Login.jsx (NEW)
+**Purpose**: User authentication interface
+
+**Features**:
+- ✅ Email/password form
+- ✅ Login/register toggle
+- ✅ Form validation
+- ✅ Error display
+- ✅ Loading states
+- ✅ Token callback to parent
+
+**State**:
+- `isRegister`: Toggle between login/register
+- `email`: User email input
+- `password`: User password input
+- `loading`: Form submission state
+- `error`: Error message display
+
+---
+
+#### History.jsx (NEW)
+**Purpose**: Display user's video history
+
+**Features**:
+- ✅ Paginated video list
+- ✅ Video metadata cards
+- ✅ Delete functionality
+- ✅ Status indicators
+- ✅ Empty state handling
+- ✅ Error handling
+- ✅ Loading spinner
+
+**API Integration**:
+```javascript
+// Load videos
+const videos = await getVideos(token, page, size);
+
+// Delete video
+await deleteVideo(token, videoId);
+```
+
+---
+
+#### Stats.jsx (NEW)
+**Purpose**: Display statistics and analytics
+
+**Features**:
+- ✅ Overview metrics
+- ✅ Bar chart visualization
+- ✅ Advanced filter form
+- ✅ Recent violations table
+- ✅ CSV export
+- ✅ Real-time updates
+
+**API Integration**:
+```javascript
+// Load statistics
+const stats = await getStats(token);
+
+// Filter violations
+const violations = await filterViolations(token, filters);
+
+// Export CSV
+await exportViolationsCSV(token);
+```
+
+---
+
+#### UploadForm.jsx (Enhanced)
+**Purpose**: Handle video upload with authentication
+
+**NEW Props**:
+- `token`: JWT token for authenticated uploads
 
 **Features**:
 - ✅ Drag & drop support
@@ -136,88 +237,58 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
 - ✅ File preview with metadata
 - ✅ Progress indicator
 - ✅ Error handling
-- ✅ Visual states (dragging, has-file)
+- ✅ **Token-based authentication** (NEW)
 
-**Validation**:
-- Allowed formats: `.mp4`, `.avi`, `.mov`, `.mkv`
-- Max size: 200 MB
-- Real-time validation feedback
-
----
-
-#### SummaryStats.jsx
-**Purpose**: Display summary statistics and metrics
-
-**Features**:
-- ✅ Visual metric cards with icons
-- ✅ Color-coded statistics
-- ✅ Detection and violation rates
-- ✅ Processing metadata grid
-- ✅ Duration formatting
-
-**Metrics Displayed**:
-- Total vehicles tracked
-- Plates detected (with detection rate)
-- Violations found (with violation rate)
-- Average speed (compared to limit)
-- Video duration
-- Processing time
-- Frame rate
-- Frames processed
+**Authentication**:
+```javascript
+// Upload with token
+const result = await uploadVideo(file, token);
+```
 
 ---
 
-#### ViolationsTable.jsx
-**Purpose**: Display violations in interactive table
+### API Client (Enhanced)
 
-**Features**:
-- ✅ Sortable columns (severity, speed, overspeed, confidence, timestamp)
-- ✅ Severity filter dropdown
-- ✅ CSV export functionality
-- ✅ Color-coded severity rows
-- ✅ Confidence bars
-- ✅ Validation indicators
-- ✅ Empty state handling
+#### api/v2.js (NEW)
+**Purpose**: V2 API integration with authentication
 
-**Columns**:
-- Severity (with badge and icon)
-- Plate Number (with validation status)
-- Speed (km/h)
-- Speed Limit
-- Overspeed amount
-- Timestamp
-- Confidence (visual bar + percentage)
+**Functions**:
+```javascript
+// Authentication
+register(email, password)
+login(email, password)
 
-**Severity Icons**:
-- 🟢 Low
-- 🟡 Medium
-- 🟠 High
-- 🔴 Critical
+// Videos
+getVideos(token, page, size)
+getVideo(token, id)
+deleteVideo(token, id)
+
+// Violations
+filterViolations(token, filter)
+getViolation(token, id)
+
+// Statistics
+getStats(token)
+
+// Export
+exportViolationsCSV(token)
+```
 
 ---
 
-#### VehicleDetails.jsx
-**Purpose**: Display detailed vehicle tracking information
+#### api/backend.js (Enhanced)
+**Purpose**: Backend API with optional authentication
 
-**Features**:
-- ✅ Grid layout of vehicle cards
-- ✅ Expandable detail view
-- ✅ Violation indicators
-- ✅ Plate validation status
-- ✅ Confidence scoring
-- ✅ Tracking statistics
-- ✅ Trajectory preview
-- ✅ Filter by validated plates
+**Enhanced Functions**:
+```javascript
+// Upload with optional token
+uploadVideo(file, token = null)
+uploadVideoSummary(file, token = null)
 
-**Information Displayed**:
-- Vehicle ID and status
-- License plate (if detected)
-- OCR confidence and validation
-- Speed and violation status
-- Tracking frames and trajectory
-- Raw OCR text
-- Applied corrections
-- Sampled trajectory points
+// Health checks
+checkHealth()
+checkDetailedHealth()
+```
 
 ---
 
@@ -235,114 +306,147 @@ This module represents the **Frontend Dashboard** of the Traffic Monitoring Syst
 --radius-sm through --radius-lg
 ```
 
-### Design Principles
-- **Gradient Backgrounds**: Modern, eye-catching aesthetics
-- **Card-Based Layout**: Organized, scannable information
-- **Color Coding**: Immediate visual understanding
-- **Shadows & Depth**: Clear visual hierarchy
-- **Smooth Animations**: Professional feel
-- **Responsive Grid**: Adapts to screen size
+### V2 Styles (NEW)
+**File**: `src/styles/v2.css`
 
-### Key Visual Elements
-- Gradient header (purple to blue)
-- White content cards with shadows
-- Color-coded severity levels
-- Animated hover states
-- Progress indicators with gradients
-- Icon-enhanced metrics
+**New Components**:
+- `.login-container`, `.login-card`
+- `.history-container`, `.video-grid`, `.video-card`
+- `.stats-container`, `.stats-overview`, `.bar-chart`
+- `.filter-section`, `.violations-table-compact`
+- `.pagination`, `.nav-btn`
 
 ---
 
 ## 🔄 Data Flow
 
+### Authentication Flow
+```text
+1. User opens app
+   ↓
+2. Check localStorage for token
+   ↓
+3. If token exists → Auto-login
+   ↓
+4. If no token → Show login page
+   ↓
+5. User registers/logs in
+   ↓
+6. Receive JWT token from backend
+   ↓
+7. Store token in localStorage
+   ↓
+8. Include token in all API requests
+```
+
+### Video Upload Flow (Authenticated)
 ```text
 1. User selects/drops video file
    ↓
 2. File validation (format, size)
    ↓
 3. Submit to backend POST /api/upload-video
+   Headers: { Authorization: Bearer <token> }
    ↓
-4. Show progress indicator (simulated)
+4. Backend validates token
    ↓
 5. Backend forwards to AI-Service
    ↓
-6. AI analyzes video (real progress)
+6. Backend saves result to DB with userId
    ↓
-7. Backend returns v1.5 JSON response
+7. Frontend displays results
    ↓
-8. Frontend parses and displays:
-   - Summary statistics
-   - Violations table
-   - Vehicle details
-   - Raw JSON
+8. Video appears in user's history
 ```
 
 ---
 
 ## 📤 API Integration
 
-### Backend Communication (`src/api/backend.js`)
+### Authentication APIs (NEW)
 
 ```javascript
-// Full analysis
-const result = await uploadVideo(file);
+// Register
+const result = await register(email, password);
+// Returns: { token, user, expiresAt }
 
-// Summary only (faster)
-const summary = await uploadVideoSummary(file);
+// Login
+const result = await login(email, password);
+// Returns: { token, user, expiresAt }
 
-// Health checks
-const health = await checkHealth();
-const detailedHealth = await checkDetailedHealth();
+// Store token
+localStorage.setItem('token', result.token);
+localStorage.setItem('user', JSON.stringify(result.user));
 ```
 
-### Environment Configuration
-```bash
-# Development
-VITE_API_BASE=http://localhost:8080
+### V2 APIs (NEW)
 
-# Docker
-VITE_API_BASE=http://traffic-ktor-backend:8080
+```javascript
+// Get videos with pagination
+const videos = await getVideos(token, 0, 20);
+// Returns: { data, page, size, totalElements, totalPages }
+
+// Get statistics
+const stats = await getStats(token);
+// Returns: { total, averageSpeed, bySeverity }
+
+// Filter violations
+const violations = await filterViolations(token, {
+  severity: 'HIGH',
+  startDate: '2024-01-01T00:00:00',
+  page: 0,
+  size: 20
+});
+```
+
+### V1.5 APIs (Enhanced)
+
+```javascript
+// Upload video (now with token)
+const result = await uploadVideo(file, token);
+// Returns: Full AI analysis response
+
+// Upload video summary
+const summary = await uploadVideoSummary(file, token);
+// Returns: Summary statistics only
 ```
 
 ---
 
-## 📊 Response Handling
+## 📊 Feature Flags
 
-### v1.5 Response Structure
-```javascript
-{
-  status: "success",
-  processing_time_seconds: 45.3,
-  video_info: { ... },
-  summary: {
-    total_vehicles_tracked: 12,
-    vehicles_with_plates: 8,
-    violations_detected: 2,
-    average_speed_kmh: 48.5
-  },
-  violations: [
-    {
-      violation_id: "v_001",
-      plate_number: "123TUN456",
-      plate_confidence: 0.92,
-      plate_validated: true,
-      speed_kmh: 72.4,
-      severity: "high",
-      ...
-    }
-  ],
-  tracked_vehicles: [ ... ],
-  configuration: { ... }
-}
+### Environment Variables
+
+```bash
+# Enable V2 features
+VITE_ENABLE_V2=true              # Enable history and stats
+VITE_ENABLE_AUTH=true            # Require authentication
+
+# Backend URL
+VITE_API_BASE=http://localhost:8080
 ```
 
-### Key Changes from v1.0
-- ✅ `violations` is now an array (not object)
-- ✅ Added `summary` object
-- ✅ Added `tracked_vehicles` array
-- ✅ Added confidence and validation fields
-- ✅ Added severity classification
-- ✅ Removed `violations_nbr` and `details` root keys
+### Conditional Features
+
+The frontend adapts based on feature flags:
+
+```javascript
+const enableV2 = import.meta.env.VITE_ENABLE_V2 === 'true';
+const enableAuth = import.meta.env.VITE_ENABLE_AUTH === 'true';
+
+// Show login page only if auth enabled
+if (enableAuth && !token) {
+  return <Login onLogin={handleLogin} />;
+}
+
+// Show history/stats tabs only if V2 enabled
+{enableV2 && (
+  <>
+    <NavButton view="history">History</NavButton>
+    <NavButton view="stats">Statistics</NavButton>
+  </>
+)}
+```
 
 ---
 
@@ -362,6 +466,8 @@ npm install
 Create `.env` file:
 ```env
 VITE_API_BASE=http://localhost:8080
+VITE_ENABLE_V2=true
+VITE_ENABLE_AUTH=true
 ```
 
 ### 3️⃣ Start Development Server
@@ -372,7 +478,7 @@ npm run dev
 ### 4️⃣ Access Dashboard
 Open browser: **http://localhost:5173**
 
-⚠️ **Ensure backend is running on port 8080**
+⚠️ **Ensure backend and database are running**
 
 ---
 
@@ -399,14 +505,16 @@ Upload `dist/` contents to your web server or CDN.
 
 ### Build Image
 ```bash
-docker build -t traffic-dashboard-frontend .
+docker build -t traffic-dashboard-frontend \
+  --build-arg VITE_API_BASE=http://localhost:8080 \
+  --build-arg VITE_ENABLE_V2=true \
+  --build-arg VITE_ENABLE_AUTH=true \
+  .
 ```
 
 ### Run Container
 ```bash
-docker run -p 5173:5173 \
-  -e VITE_API_BASE=http://host.docker.internal:8080 \
-  traffic-dashboard-frontend
+docker run -p 5173:5173 traffic-dashboard-frontend
 ```
 
 ### Run with Docker Compose
@@ -420,6 +528,15 @@ docker-compose up traffic-frontend
 
 ### Manual Testing Checklist
 
+**Authentication**:
+- [ ] Registration form works
+- [ ] Login form works
+- [ ] Token is stored in localStorage
+- [ ] Logout clears token
+- [ ] Auto-login on refresh works
+- [ ] Invalid credentials show error
+- [ ] Token expiration handled
+
 **Upload Flow**:
 - [ ] Drag & drop works
 - [ ] Browse file works
@@ -427,112 +544,133 @@ docker-compose up traffic-frontend
 - [ ] Validation rejects invalid formats
 - [ ] Validation rejects oversized files
 - [ ] Progress bar animates
+- [ ] Token included in request
+- [ ] 401 error redirects to login
 - [ ] Upload button disables during processing
 - [ ] Error messages display correctly
 
-**Results Display**:
-- [ ] Summary stats calculate correctly
-- [ ] Violations table sorts properly
-- [ ] Severity filter works
+**History**:
+- [ ] Videos load correctly
+- [ ] Pagination works
+- [ ] Video cards display metadata
+- [ ] Delete confirmation appears
+- [ ] Delete removes video
+- [ ] Empty state shows when no videos
+- [ ] Loading spinner appears
+
+**Statistics**:
+- [ ] Overview cards show correct data
+- [ ] Bar chart renders correctly
+- [ ] Filters work (severity, plate, date)
 - [ ] CSV export downloads
-- [ ] Vehicle cards expand/collapse
-- [ ] Confidence bars display
-- [ ] Validation badges show
-- [ ] Tab switching works
-- [ ] Raw JSON displays
+- [ ] Recent violations table displays
 
 **Responsive Design**:
 - [ ] Mobile view works
 - [ ] Tablet view works
 - [ ] Desktop view works
-- [ ] Elements wrap properly
 - [ ] Touch interactions work
+- [ ] Navigation menu works on mobile
 
 ---
 
 ## 🎯 Features Breakdown
 
-### Priority 1 (Implemented in v1.5)
-- ✅ Modern gradient-based UI
-- ✅ Drag & drop file upload
-- ✅ Real-time progress indicators
-- ✅ Summary statistics dashboard
-- ✅ Interactive violations table
-- ✅ Vehicle detail cards
+### Priority 1 (Implemented in v2.0)
+- ✅ User authentication UI
+- ✅ Login and registration pages
+- ✅ Token management
+- ✅ Video history browser
+- ✅ Statistics dashboard
+- ✅ Advanced filtering
 - ✅ CSV export
-- ✅ Severity color coding
-- ✅ Confidence indicators
-- ✅ Validation badges
-- ✅ Responsive design
-- ✅ Empty state handling
-- ✅ Error message improvements
+- ✅ Navigation tabs
+- ✅ Protected routes
+- ✅ User-scoped data
 
-### Priority 2 (Planned for v2.0)
-- [ ] User authentication UI
-- [ ] Historical data browsing
-- [ ] Advanced filtering controls
-- [ ] Date range picker
-- [ ] Charts and graphs
-- [ ] Video playback with overlays
-- [ ] Export to PDF
+### Priority 2 (Planned for v2.1)
+- [ ] Password reset flow
+- [ ] Email verification
+- [ ] User profile page
+- [ ] Settings panel
+- [ ] Remember me option
+- [ ] Session timeout warning
 - [ ] Dark mode toggle
 - [ ] Keyboard shortcuts
-- [ ] Print-friendly view
+- [ ] Notification system
+
+### Priority 3 (Planned for v3.0)
+- [ ] Real-time updates (WebSocket)
+- [ ] Video playback with overlays
+- [ ] Charts and graphs
+- [ ] Advanced analytics
+- [ ] Multi-language support
+- [ ] Mobile app wrapper
+- [ ] Offline support
+- [ ] PDF report generation
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Issue: "Failed to fetch"
-**Cause**: Backend not reachable
+### Issue: "Failed to fetch" on login
+**Cause**: Backend not reachable or authentication disabled
 
 **Solution**:
 ```bash
 # Check backend health
-curl http://localhost:8080/health
+curl http://localhost:8080/health/detailed
 
-# Verify environment variable
+# Verify backend has authentication enabled
+curl http://localhost:8080/ | grep "Authentication"
+
+# Check environment variable
 echo $VITE_API_BASE
-
-# Check browser console for CORS errors
 ```
 
-### Issue: Upload fails
+### Issue: History page is empty
 **Causes**:
-- Invalid video format
-- File too large
-- Backend not running
-- Network error
+- No videos uploaded yet
+- Videos uploaded by different user
+- Database empty
+- Backend V2 features disabled
 
 **Solutions**:
-- Verify file format (.mp4, .avi, .mov, .mkv)
-- Check file size (max 200 MB)
-- Ensure backend is running
-- Check browser network tab for errors
+- Upload a video first
+- Ensure logged in with correct account
+- Check backend logs: `docker logs traffic-ktor-backend`
+- Verify ENABLE_V2_PERSISTENCE=true in backend
 
-### Issue: Styling looks broken
-**Solutions**:
-```bash
-# Clear browser cache
-# Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
+### Issue: Upload returns 401 Unauthorized
+**Causes**:
+- Not logged in
+- Token expired
+- Token not included in request
 
-# Rebuild
-npm run build
-npm run preview
-```
-
-### Issue: Docker container won't start
 **Solutions**:
 ```bash
-# Check logs
-docker logs traffic-frontend
+# Check if logged in
+localStorage.getItem('token')
 
-# Rebuild without cache
-docker build --no-cache -t traffic-frontend .
-
-# Check port availability
-lsof -i :5173
+# Login again
+# Check browser network tab for Authorization header
+# Verify token format: "Bearer eyJ..."
 ```
+
+### Issue: Token expired
+**Solution**:
+```javascript
+// Token expires after 1 hour (default)
+// Login again to get fresh token
+// Or configure JWT_VALIDITY_MS for longer expiration
+```
+
+### Issue: Statistics not loading
+**Check**:
+- Ensure logged in
+- Check browser console for errors
+- Verify backend /api/v2/stats endpoint
+- Check network tab for 401/403 errors
 
 ---
 
@@ -541,16 +679,17 @@ lsof -i :5173
 ### Current Optimizations
 - ✅ Code splitting by route
 - ✅ Lazy loading components
-- ✅ Optimized bundle size
+- ✅ Optimized bundle size (~150KB gzipped)
 - ✅ CSS minification
 - ✅ Asset optimization
+- ✅ Token-based caching
 
-### Future Optimizations (v2.0)
-- [ ] Image lazy loading
+### Future Optimizations (v2.1)
 - [ ] Virtual scrolling for large tables
 - [ ] Service worker for caching
 - [ ] Progressive Web App (PWA)
-- [ ] Code splitting improvements
+- [ ] Image lazy loading
+- [ ] Infinite scroll for history
 
 ---
 
@@ -589,20 +728,21 @@ npm run lint
 
 ---
 
-## 🚀 v2.0 Roadmap
+## 🚀 v2.1 Roadmap
 
 ### Planned Features
-- [ ] User authentication UI (login, register)
-- [ ] Historical violations browser
-- [ ] Advanced filtering (date range, severity, plate)
-- [ ] Statistics charts (Chart.js)
-- [ ] Video playback with violation overlays
-- [ ] PDF report generation
-- [ ] Dark mode with toggle
+- [ ] Password reset flow
+- [ ] Email verification UI
+- [ ] User profile page
+- [ ] Account settings
+- [ ] Remember me checkbox
+- [ ] Session timeout warning
+- [ ] Dark mode toggle
 - [ ] Keyboard shortcuts
-- [ ] Notification system
-- [ ] Multi-language support
-- [ ] Mobile app wrapper
+- [ ] Toast notifications
+- [ ] Loading skeletons
+- [ ] Error boundaries
+- [ ] Accessibility improvements
 
 ---
 
@@ -625,12 +765,13 @@ npm run lint
 }
 ```
 
-### Planned for v2.0
-- `react-router-dom`: Routing
-- `zustand` or `redux`: State management
-- `recharts`: Charts and graphs
+### Future Dependencies
+- `react-router-dom`: Client-side routing
+- `zustand` or `redux`: Advanced state management
+- `recharts`: Enhanced charts and graphs
 - `date-fns`: Date manipulation
 - `react-hot-toast`: Notifications
+- `react-query`: API state management
 
 ---
 
@@ -653,7 +794,14 @@ const maxSizeMB = 200;  // Change this
 const allowedFormats = ['.mp4', '.avi', '.mov', '.mkv'];
 ```
 
+### Customizing Token Expiration
+Configure on backend (affects all clients):
+```bash
+JWT_VALIDITY_MS=7200000  # 2 hours
+```
+
 ---
 
-**Frontend Status**: v1.5 Stabilization Complete ✅  
-**Ready for**: v2.0 Feature Expansion 🚀
+**Frontend Status**: v2.0 Complete ✅  
+**Features**: Authentication + History + Statistics 🚀  
+**Ready for**: v2.1 Enhanced UX 📋

@@ -2,21 +2,48 @@ package com.traffic.routes
 
 import com.traffic.client.AIClient
 import com.traffic.dto.ai.UploadResponseSummary
+import com.traffic.plugins.userId
+import com.traffic.service.VideoService
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.util.UUID
 
+/**
+ * AI Routes - Video Upload and Processing
+ *
+ * V1.5 Behavior: Public endpoints (no authentication required)
+ * V2.0 Behavior: Protected with JWT authentication when ENABLE_AUTHENTICATION=true
+ */
 fun Route.aiRoutes(aiClient: AIClient) {
+    val enableAuth = System.getenv("ENABLE_AUTHENTICATION")?.toBoolean() ?: false
+
+    // Wrap in authentication if V2 auth is enabled
+    if (enableAuth) {
+        authenticate("auth-jwt") {
+            uploadRoutes(aiClient)
+        }
+    } else {
+        uploadRoutes(aiClient)
+    }
+}
+
+private fun Route.uploadRoutes(aiClient: AIClient) {
 
     post("/api/upload-video") {
         val correlationId = UUID.randomUUID().toString()
         val startTime = System.currentTimeMillis()
 
         call.application.log.info("[{}] ▶ Received upload request", correlationId)
+
+        // Get userId (will be null if not authenticated, but that's OK for V1.5 compatibility)
+        val userId = call.userId
+
+        call.application.log.info("[{}] ℹ User ID: {}", correlationId, userId ?: "anonymous")
 
         // Receive multipart data
         val multipart = call.receiveMultipart()
@@ -56,6 +83,28 @@ fun Route.aiRoutes(aiClient: AIClient) {
         // Forward to AI service
         val result = aiClient.analyzeVideo(bytes, fileName, correlationId)
 
+        // Save to database if V2 enabled
+        val enableV2 = System.getenv("ENABLE_V2_PERSISTENCE")?.toBoolean() ?: false
+        if (enableV2) {
+            try {
+                val videoId = VideoService.saveVideo(result, userId)
+                call.application.log.info(
+                    "[{}] 💾 Video saved to database: videoId={}{}",
+                    correlationId,
+                    videoId,
+                    if (userId != null) " userId=$userId" else " (anonymous)"
+                )
+            } catch (e: Exception) {
+                call.application.log.error(
+                    "[{}] ❌ Failed to save to database: {}",
+                    correlationId,
+                    e.message,
+                    e
+                )
+                // Don't fail the request if DB save fails
+            }
+        }
+
         val elapsed = (System.currentTimeMillis() - startTime) / 1000.0
 
         call.application.log.info(
@@ -76,6 +125,10 @@ fun Route.aiRoutes(aiClient: AIClient) {
         val startTime = System.currentTimeMillis()
 
         call.application.log.info("[{}] ▶ Received upload request (summary mode)", correlationId)
+
+        // Get userId
+        val userId = call.userId
+        call.application.log.info("[{}] ℹ User ID: {}", correlationId, userId ?: "anonymous")
 
         // Receive multipart data
         val multipart = call.receiveMultipart()
@@ -100,6 +153,21 @@ fun Route.aiRoutes(aiClient: AIClient) {
         // Forward to AI service
         val result = aiClient.analyzeVideo(bytes, fileName, correlationId)
 
+        // Save to database if V2 enabled
+        val enableV2 = System.getenv("ENABLE_V2_PERSISTENCE")?.toBoolean() ?: false
+        if (enableV2) {
+            try {
+                VideoService.saveVideo(result, userId)
+                call.application.log.info(
+                    "[{}] 💾 Video saved to database{}",
+                    correlationId,
+                    if (userId != null) " (userId=$userId)" else " (anonymous)"
+                )
+            } catch (e: Exception) {
+                call.application.log.error("[{}] ❌ Failed to save to database: {}", correlationId, e.message)
+            }
+        }
+
         val elapsed = (System.currentTimeMillis() - startTime) / 1000.0
 
         call.application.log.info(
@@ -118,17 +186,6 @@ fun Route.aiRoutes(aiClient: AIClient) {
                 vehicles_tracked = result.summary.total_vehicles_tracked,
                 plates_detected = result.summary.vehicles_with_plates,
                 video_duration_seconds = result.video_info.duration_seconds
-            )
-        )
-    }
-
-    get("/api/stats") {
-        // Placeholder for future statistics endpoint
-        call.respond(
-            HttpStatusCode.OK,
-            mapOf(
-                "message" to "Statistics endpoint - coming in v2.0",
-                "version" to "1.5.0"
             )
         )
     }

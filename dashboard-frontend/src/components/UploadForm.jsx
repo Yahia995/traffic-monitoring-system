@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { uploadVideo } from "../api/backend";
 
-export default function UploadForm({ onResult }) {
+/**
+ * UploadForm Component
+ * 
+ * Handles video file selection and upload with optional authentication (V2.0)
+ * 
+ * Props:
+ * - onResult: Callback function when upload succeeds
+ * - token: Optional JWT token for authenticated uploads (V2.0)
+ */
+export default function UploadForm({ onResult, token = null }) {
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -95,7 +104,8 @@ export default function UploadForm({ onResult }) {
         }, 1000);
 
         try {
-            const result = await uploadVideo(file);
+            // Pass token for authenticated upload (V2.0)
+            const result = await uploadVideo(file, token);
             setProgress(100);
             clearInterval(progressInterval);
             

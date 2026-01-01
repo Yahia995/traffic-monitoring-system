@@ -1,9 +1,9 @@
-# 🚦 Traffic Monitoring System — v1.5 (Stabilization Complete)
+# 🚦 Traffic Monitoring System — v2.0 (Complete)
 
-An end-to-end **intelligent traffic violation detection system** that analyzes traffic videos to detect vehicles, recognize license plates, estimate speed, and identify traffic violations with enhanced accuracy and validation.
+An end-to-end **intelligent traffic violation detection system** that analyzes traffic videos to detect vehicles, recognize license plates, estimate speed, and identify traffic violations with enhanced accuracy, validation, **database persistence**, and **user authentication**.
 
-**Current Version**: v1.5 (Stabilization) ✅  
-**Next Version**: v2.0 (Database & Authentication) 🚀
+**Current Version**: v2.0 (Database & Authentication) ✅  
+**Previous Version**: v1.5 (Stabilization)
 
 ---
 
@@ -17,42 +17,50 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 - ✅ Validate license plates with pattern matching and correction
 - ✅ Display results in modern, interactive web dashboard
 - ✅ Full Docker containerization with health checks
+- ✅ **PostgreSQL database for data persistence** (NEW v2.0)
+- ✅ **JWT-based user authentication and authorization** (NEW v2.0)
+- ✅ **Video history and violation tracking** (NEW v2.0)
+- ✅ **Advanced filtering and statistics** (NEW v2.0)
 
 ---
 
-## 🆕 What's New in v1.5
+## 🆕 What's New in v2.0
 
-### AI Service
-- ✅ Enhanced OCR with multi-pass processing and validation
-- ✅ Automatic license plate correction (common OCR errors)
-- ✅ Pattern-based validation with confidence tracking
-- ✅ Improved error handling and detailed logging
-- ✅ Configurable via environment variables
+### Database Persistence
+- ✅ **PostgreSQL Integration**: All analysis results stored in database
+- ✅ **Video History**: Track all uploaded videos with metadata
+- ✅ **Violation Storage**: Searchable violation records with filtering
+- ✅ **Vehicle Tracking**: Complete vehicle and trajectory data persistence
+- ✅ **Data Relationships**: Proper foreign keys and relational integrity
+- ✅ **Pagination Support**: Efficient browsing of large datasets
 
-### Backend
-- ✅ Request correlation IDs for tracing
-- ✅ Enhanced error messages with user-friendly details
-- ✅ Response validation and consistency checks
-- ✅ Detailed health endpoint with AI service status
-- ✅ Summary-only endpoint for quick statistics
+### Authentication & Authorization
+- ✅ **JWT Authentication**: Secure token-based authentication
+- ✅ **User Registration**: Self-service account creation
+- ✅ **User Login**: Credential-based authentication with BCrypt
+- ✅ **Protected Routes**: Auth required for video uploads and V2 endpoints
+- ✅ **User Isolation**: Each user sees only their own videos
 
-### Frontend
-- ✅ Modern gradient-based UI with professional styling
-- ✅ Tab-based interface (Violations / All Vehicles / Raw Data)
-- ✅ Interactive summary dashboard with visual metrics
-- ✅ Sortable, filterable violations table
-- ✅ Expandable vehicle detail cards
-- ✅ CSV export functionality
-- ✅ Drag & drop file upload
-- ✅ Real-time progress indicators
-- ✅ Severity color coding and confidence bars
-- ✅ Responsive design for all screen sizes
+### Frontend Enhancements
+- ✅ **Login/Register UI**: Modern authentication interface
+- ✅ **Video History View**: Browse previously analyzed videos
+- ✅ **Statistics Dashboard**: Aggregate analytics and charts
+- ✅ **Advanced Filtering**: Search violations by severity, date, plate, etc.
+- ✅ **CSV Export**: Download violation data for reporting
+- ✅ **Responsive Design**: Works on desktop, tablet, and mobile
+
+### API Improvements
+- ✅ **V2 REST Endpoints**: Complete RESTful API for videos, violations, stats
+- ✅ **Pagination**: Efficient data retrieval for large datasets
+- ✅ **Advanced Filtering**: Multi-criteria violation search
+- ✅ **Statistics API**: Real-time analytics aggregation
+- ✅ **Export Endpoints**: CSV download for violations
 
 ### Infrastructure
-- ✅ Docker health checks for all services
-- ✅ Resource limits and reservations
-- ✅ Enhanced networking configuration
-- ✅ Comprehensive environment variable support
+- ✅ **Feature Flags**: Enable/disable V2 features independently
+- ✅ **Backward Compatibility**: V1.5 endpoints still work
+- ✅ **Enhanced Health Checks**: Monitor database and AI service status
+- ✅ **Graceful Degradation**: System works without database if V2 disabled
 
 ---
 
@@ -62,30 +70,31 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 ┌─────────────────────────────────────────────────┐
 │  Frontend Dashboard (React + Vite)              │
 │  Port: 5173                                     │
-│  • Modern UI with tabs & statistics             │
-│  • Drag & drop upload                           │
-│  • Interactive visualizations                   │
+│  • Modern UI with authentication                │
+│  • Video history and statistics                 │
+│  • Advanced filtering and export                │
 └────────────────┬────────────────────────────────┘
-                 │ HTTP REST
+                 │ HTTP REST + JWT
                  ↓
 ┌─────────────────────────────────────────────────┐
 │  Backend API (Ktor + Kotlin)                    │
 │  Port: 8080                                     │
+│  • JWT authentication & authorization           │
 │  • Request correlation tracking                 │
+│  • Database persistence layer                   │
 │  • Enhanced error handling                      │
-│  • Response validation                          │
-└────────────────┬────────────────────────────────┘
-                 │ HTTP REST
-                 ↓
-┌─────────────────────────────────────────────────┐
-│  AI-Service (FastAPI + Python)                  │
-│  Port: 8000                                     │
-│  • Enhanced YOLOv8 Detection                    │
-│  • Multi-pass PaddleOCR with validation         │
-│  • Automatic plate correction                   │
-│  • Centroid Tracker                             │
-│  • Speed Estimator with severity classification │
-└─────────────────────────────────────────────────┘
+└────────┬───────────────────┬────────────────────┘
+         │                   │
+         │ HTTP REST         │ PostgreSQL
+         ↓                   ↓
+┌────────────────┐   ┌──────────────────┐
+│  AI-Service    │   │  PostgreSQL DB   │
+│  Port: 8000    │   │  Port: 5432      │
+│  • YOLOv8      │   │  • Users         │
+│  • PaddleOCR   │   │  • Videos        │
+│  • Tracking    │   │  • Violations    │
+│  • Speed Est.  │   │  • Vehicles      │
+└────────────────┘   └──────────────────┘
 ```
 
 ---
@@ -111,9 +120,11 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 
 ### ⚙️ Backend API (Ktor / Kotlin)
 **Port**: 8080  
-**Version**: 1.5.0  
+**Version**: 2.0.0  
 **Responsibilities**:
 - Video upload endpoints (full & summary)
+- JWT authentication and user management
+- Database persistence (videos, violations, vehicles)
 - Communication with AI-Service
 - Request correlation tracking
 - Enhanced error handling
@@ -129,18 +140,38 @@ An end-to-end **intelligent traffic violation detection system** that analyzes t
 
 ### 🖥️ Dashboard Frontend (React / Vite)
 **Port**: 5173  
-**Version**: 1.5.0  
+**Version**: 2.0.0  
 **Responsibilities**:
 - Modern, responsive web interface
+- User authentication (login/register)
 - Video upload with drag & drop
 - Summary statistics dashboard
 - Interactive violations table
 - Detailed vehicle tracking view
+- Video history browser
+- Statistics and analytics dashboard
+- Advanced violation filtering
 - CSV export functionality
 - Real-time progress tracking
 
 📁 **Location**: `dashboard-frontend/`  
 📖 **Documentation**: [dashboard-frontend/README.md](./dashboard-frontend/README.md)
+
+---
+
+### 💾 Database (PostgreSQL)
+**Port**: 5432  
+**Version**: 15-alpine  
+**Responsibilities**:
+- Store user accounts and credentials
+- Persist video analysis results
+- Store violations with full metadata
+- Track vehicle data and trajectories
+- Support advanced querying and filtering
+- Maintain data relationships and integrity
+
+📁 **Location**: Managed by Docker Compose  
+**Schema**: Defined in `ktor-backend/src/main/kotlin/database/Tables.kt`
 
 ---
 
@@ -156,10 +187,26 @@ git clone https://github.com/Yahia995/traffic-monitoring-system.git
 cd traffic-monitoring-system
 ```
 
-### 2️⃣ Configure Environment (Optional)
+### 2️⃣ Configure Environment
 ```bash
+# Copy example environment file
 cp .env.example .env
-# Edit .env if you need custom configuration
+
+# Edit if needed (defaults work for development)
+nano .env
+```
+
+Key configurations:
+```bash
+# Feature Flags
+ENABLE_V2_PERSISTENCE=true       # Enable database
+ENABLE_AUTHENTICATION=true       # Enable auth
+
+# Database
+DB_PASSWORD=postgres             # Change in production
+
+# JWT
+JWT_SECRET=your-secret-key       # MUST change in production
 ```
 
 ### 3️⃣ Start All Services
@@ -168,16 +215,30 @@ docker-compose up --build
 ```
 
 This will start:
+- **PostgreSQL Database** on `http://localhost:5432`
 - **AI-Service** on `http://localhost:8000`
-- **Backend** on `http://localhost:8080`
-- **Frontend** on `http://localhost:5173`
+- **Backend API** on `http://localhost:8080`
+- **Frontend Dashboard** on `http://localhost:5173`
 
 ### 4️⃣ Access the Dashboard
 Open your browser to: **http://localhost:5173**
 
+1. **Register** a new account (email + password)
+2. **Login** with your credentials
+3. **Upload** a traffic video for analysis
+4. **View** results, violations, and statistics
+5. **Browse** video history
+6. **Filter** violations by various criteria
+7. **Export** violation data as CSV
+
 ### 5️⃣ Stop Services
 ```bash
 docker-compose down
+```
+
+To also remove volumes (database data):
+```bash
+docker-compose down -v
 ```
 
 ---
@@ -189,15 +250,17 @@ docker-compose down
 | **Frontend** | http://localhost:5173 | Web dashboard |
 | **Backend API** | http://localhost:8080 | REST API |
 | **Backend Health** | http://localhost:8080/health | Basic health check |
-| **Backend Detailed Health** | http://localhost:8080/health/detailed | Detailed health with AI status |
+| **Backend Detailed Health** | http://localhost:8080/health/detailed | Health with DB/AI status |
 | **Backend Swagger** | http://localhost:8080/swagger | API documentation |
 | **AI-Service Docs** | http://localhost:8000/docs | FastAPI Swagger UI |
 | **AI-Service Health** | http://localhost:8000/health | Health check |
+| **PostgreSQL** | localhost:5432 | Database (credentials in .env) |
 
 ---
 
-## 📤 API Response Format (v1.5)
+## 📤 API Response Format (v2.0)
 
+### Video Upload Response (V1.5 Compatible)
 ```json
 {
   "status": "success",
@@ -229,57 +292,67 @@ docker-compose down
       "severity": "high"
     }
   ],
-  "tracked_vehicles": [
-    {
-      "vehicle_id": "veh_001",
-      "tracking_info": {
-        "first_frame": 10,
-        "last_frame": 85,
-        "frames_tracked": 76,
-        "trajectory_length_pixels": 450.3
-      },
-      "plate_info": {
-        "plate_number": "123TUN456",
-        "raw_ocr_text": "I23TUN456",
-        "confidence": 0.92,
-        "validated": true,
-        "corrections_applied": ["I→1"],
-        "detection_frame": 25
-      },
-      "speed_info": {
-        "speed_kmh": 72.4,
-        "is_violation": true,
-        "calculation_valid": true
-      },
-      "positions": [
-        { "frame": 10, "x": 412, "y": 318 },
-        { "frame": 20, "x": 430, "y": 340 }
-      ]
-    }
-  ],
-  "configuration": {
-    "speed_limit_kmh": 50.0,
-    "pixel_to_meter": 0.05,
-    "min_tracked_frames": 8,
-    "frame_skip": 1,
-    "vehicle_confidence": 0.35,
-    "plate_confidence": 0.25,
-    "ocr_confidence": 0.5
+  "tracked_vehicles": [...],
+  "configuration": {...}
+}
+```
+
+### V2 API Responses
+
+#### Authentication Response
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresAt": 1640003600000,
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "USER",
+    "createdAt": "2024-01-01T12:00:00"
   }
 }
 ```
 
-**Key Changes from v1.0**:
-- `violations` is now an array (not object) with full metadata
-- Added `tracked_vehicles` array with complete tracking data
-- Added `summary` object with aggregated statistics
-- Added `video_info` with processing metadata
-- Added confidence scores and validation status
-- Added severity classification (low/medium/high/critical)
+#### Video History Response
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "filename": "traffic.mp4",
+      "uploadedAt": "2024-01-01T12:00:00",
+      "summary": {
+        "totalVehicles": 12,
+        "vehiclesWithPlates": 8,
+        "violations": 2,
+        "averageSpeed": 48.5
+      }
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 50,
+  "totalPages": 3
+}
+```
+
+#### Statistics Response
+```json
+{
+  "total": 150,
+  "averageSpeed": 65.3,
+  "bySeverity": {
+    "LOW": 50,
+    "MEDIUM": 60,
+    "HIGH": 30,
+    "CRITICAL": 10
+  }
+}
+```
 
 ---
 
-## ✅ v1.5 Capabilities
+## ✅ v2.0 Features
 
 ### Detection & Recognition
 - ✅ YOLOv8-based vehicle detection
@@ -295,56 +368,229 @@ docker-compose down
 - ✅ Confidence score tracking
 - ✅ Trajectory recording
 
+### User Management (NEW v2.0)
+- ✅ User registration with email/password
+- ✅ Secure login with JWT tokens
+- ✅ Password hashing with BCrypt
+- ✅ Token expiration (1 hour default)
+- ✅ User isolation (see only own data)
+
+### Data Persistence (NEW v2.0)
+- ✅ PostgreSQL database integration
+- ✅ Video metadata storage
+- ✅ Violation records with full details
+- ✅ Vehicle tracking data persistence
+- ✅ Trajectory point storage
+- ✅ User-video relationships
+
 ### User Interface
 - ✅ Modern, gradient-based design
+- ✅ Login/Register authentication pages
 - ✅ Drag & drop video upload
 - ✅ Real-time progress tracking
 - ✅ Summary statistics dashboard
-- ✅ Interactive violations table
+- ✅ Interactive violations table with sorting
 - ✅ Expandable vehicle details
+- ✅ Video history browser with pagination
+- ✅ Statistics dashboard with charts
+- ✅ Advanced violation filtering
 - ✅ CSV export functionality
 - ✅ Responsive mobile design
 
 ### System Features
 - ✅ Docker containerization
-- ✅ Health check monitoring
+- ✅ Health check monitoring (DB + AI)
 - ✅ Request correlation tracking
 - ✅ Enhanced error handling
 - ✅ Response validation
 - ✅ Comprehensive logging
+- ✅ Feature flags for V2 features
+- ✅ Backward compatibility with V1.5
 
 ---
 
-## ⚠️ Known Limitations (v1.5)
+## 🔧 Configuration
 
+All services are configured via environment variables in `.env` file:
+
+### Feature Flags
+```bash
+ENABLE_V2_PERSISTENCE=true       # Enable database features
+ENABLE_AUTHENTICATION=true       # Enable user authentication
+```
+
+### Database Configuration
+```bash
+DB_HOST=traffic-postgres
+DB_PORT=5432
+DB_NAME=traffic_monitoring
+DB_USER=postgres
+DB_PASSWORD=postgres             # Change in production!
+DB_POOL_SIZE=10
+```
+
+### JWT Configuration
+```bash
+JWT_SECRET=your-secret-key-change-in-production
+JWT_ISSUER=traffic-monitoring-system
+JWT_AUDIENCE=traffic-monitoring-api
+JWT_VALIDITY_MS=3600000          # 1 hour
+```
+
+### AI Configuration
+```bash
+SPEED_LIMIT=50.0                 # Speed limit in km/h
+PIXEL_TO_METER=0.05             # Calibration factor
+VEHICLE_CONFIDENCE=0.35         # Detection threshold
+PLATE_CONFIDENCE=0.25           # Plate detection threshold
+OCR_CONFIDENCE=0.5              # OCR threshold
+OCR_MULTI_PASS=true             # Enable multi-pass OCR
+```
+
+See `.env.example` for full configuration options.
+
+---
+
+## 🧪 Testing
+
+### Health Checks
+```bash
+# Backend basic health
+curl http://localhost:8080/health
+
+# Backend detailed health (includes DB and AI)
+curl http://localhost:8080/health/detailed
+
+# AI service health
+curl http://localhost:8000/health
+
+# Database health (via backend)
+curl http://localhost:8080/health/detailed | jq '.services.database'
+```
+
+### Authentication Flow
+```bash
+# 1. Register user
+curl -X POST http://localhost:8080/api/v2/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+# 2. Login (save the token from response)
+curl -X POST http://localhost:8080/api/v2/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+# Response contains token
+```
+
+### Video Upload (Authenticated)
+```bash
+TOKEN="your-jwt-token-here"
+
+# Upload video
+curl -X POST http://localhost:8080/api/upload-video \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "video=@test_video.mp4"
+```
+
+### V2 API Endpoints
+```bash
+# List user's videos
+curl http://localhost:8080/api/v2/videos?page=0&size=10 \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get statistics
+curl http://localhost:8080/api/v2/stats \
+  -H "Authorization: Bearer $TOKEN"
+
+# Filter violations
+curl -X POST http://localhost:8080/api/v2/violations/filter \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "severity": "HIGH",
+    "page": 0,
+    "size": 20
+  }'
+
+# Export violations as CSV
+curl http://localhost:8080/api/v2/violations/export/csv \
+  -H "Authorization: Bearer $TOKEN" \
+  -o violations.csv
+```
+
+---
+
+## ⚠️ Known Limitations
+
+### V2.0
 - ⚠️ Speed estimation is pixel-based (not calibrated to real-world)
-- ⚠️ No authentication or user management
-- ⚠️ No database persistence
+- ⚠️ No refresh token mechanism (tokens expire after 1 hour)
+- ⚠️ No password reset functionality
+- ⚠️ No email verification
+- ⚠️ No role-based permissions (all users have same access)
 - ⚠️ No real-time camera streams
 - ⚠️ CPU-only processing (no GPU acceleration)
-- ⚠️ No video history or filtering
+- ⚠️ No multi-tenancy support
+
+---
+
+## 📊 Performance Notes
+
+### Video Processing Times (CPU-only)
+- 30-second video (720p): ~45-90 seconds
+- 1-minute video (720p): ~90-180 seconds
+- 2-minute video (720p): ~180-360 seconds
+
+**Factors affecting performance**:
+- Video resolution (720p recommended)
+- Number of vehicles in frame
+- Frame rate (30 fps optimal)
+- CPU performance
+- OCR processing (multi-pass increases time)
+
+**Optimization tips**:
+- Use H.264 encoded videos
+- Reduce resolution if processing is slow
+- Adjust `FRAME_SKIP` to process every 2nd frame
+- Disable `OCR_MULTI_PASS` for faster (less accurate) OCR
+- Ensure adequate CPU resources in Docker
+
+### Database Performance
+- **Connection Pool**: 10 connections (configurable)
+- **Typical Query Time**: < 100ms for paginated lists
+- **Video Save Time**: ~200-500ms depending on data size
+- **Recommended Index**: Automatic on foreign keys and timestamps
 
 ---
 
 ## 🚀 Roadmap
 
-### 📦 v2.0 — Database & Authentication (Next)
-**Focus**: Persistence and security
+### ✅ v2.0 — Database & Authentication (COMPLETED)
+- ✅ PostgreSQL integration
+- ✅ JWT authentication
+- ✅ User management
+- ✅ Video history
+- ✅ Violation tracking
+- ✅ Statistics API
+- ✅ Advanced filtering
+- ✅ CSV export
+
+### 📦 v2.1 — Enhanced Security & UX (Next)
+**Focus**: Security improvements and better user experience
 
 **Features**:
-- [ ] PostgreSQL database integration
-- [ ] User authentication (JWT)
-- [ ] User management and roles
-- [ ] Violation history storage
-- [ ] Advanced filtering and search
-- [ ] Statistics and analytics
-- [ ] Report generation (PDF/CSV)
-- [ ] Real-world speed calibration (homography)
-
----
+- [ ] Refresh token support
+- [ ] Password reset via email
+- [ ] Email verification
+- [ ] User profile management
+- [ ] Remember me functionality
+- [ ] Session management
+- [ ] Audit logging
+- [ ] Rate limiting
 
 ### 📦 v3.0 — Real-time & Production
-**Focus**: Live monitoring and scalability
+**Focus**: Live monitoring and enterprise features
 
 **Features**:
 - [ ] Live camera streams (RTSP)
@@ -352,37 +598,16 @@ docker-compose down
 - [ ] GPU acceleration (CUDA)
 - [ ] Multi-camera tracking
 - [ ] Night/weather adaptation
+- [ ] Real-world speed calibration (homography)
+- [ ] Role-based access control (RBAC)
+- [ ] Multi-tenancy support
 - [ ] Monitoring & observability (Grafana, Prometheus)
 - [ ] Kubernetes deployment
 - [ ] HTTPS & NGINX reverse proxy
 - [ ] Rate limiting and caching
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-All services can be configured via environment variables. See `.env.example` for details.
-
-**Key Configuration**:
-```bash
-# Speed Detection
-SPEED_LIMIT=50.0              # Speed limit in km/h
-PIXEL_TO_METER=0.05           # Calibration factor
-
-# Detection Confidence
-VEHICLE_CONFIDENCE=0.35       # Vehicle detection threshold
-PLATE_CONFIDENCE=0.25         # Plate detection threshold
-OCR_CONFIDENCE=0.5            # OCR confidence threshold
-
-# OCR Enhancement
-OCR_MULTI_PASS=true           # Enable multi-pass OCR
-OCR_MAX_ATTEMPTS=3            # Max OCR attempts
-
-# Processing
-FRAME_SKIP=1                  # Process every N frames
-MIN_TRACKED_FRAMES=8          # Minimum frames for speed calculation
-```
+- [ ] Video streaming integration
+- [ ] Advanced analytics dashboard
+- [ ] Mobile app
 
 ---
 
@@ -403,84 +628,70 @@ docker-compose up
 lsof -i :5173  # Frontend
 lsof -i :8080  # Backend
 lsof -i :8000  # AI Service
+lsof -i :5432  # PostgreSQL
 ```
 
-**AI Service timeout**:
-- Use shorter test videos (30-60 seconds)
-- Reduce video resolution
-- Check AI service logs: `docker logs traffic-ai-service`
+**Database connection fails**:
+```bash
+# Check PostgreSQL is running
+docker-compose ps
+
+# Check database logs
+docker-compose logs traffic-postgres
+
+# Test connection
+docker-compose exec traffic-postgres psql -U postgres -d traffic_monitoring -c "SELECT 1;"
+```
+
+### Authentication Issues
+
+**Cannot login after registration**:
+- Check backend logs: `docker-compose logs traffic-ktor-backend`
+- Verify JWT_SECRET is set in .env
+- Ensure ENABLE_AUTHENTICATION=true
+- Check database has users table
+
+**Token expired errors**:
+- JWT tokens expire after 1 hour by default
+- Login again to get a new token
+- Configure JWT_VALIDITY_MS for longer expiration
+
+**Upload returns 401 Unauthorized**:
+- Ensure you're logged in
+- Check token is being sent in Authorization header
+- Verify token hasn't expired
+- Check browser console for errors
 
 ### Frontend Issues
 
 **Cannot connect to backend**:
 ```bash
 # Check backend health
-curl http://localhost:8080/health
-
-# Check detailed health (including AI service)
 curl http://localhost:8080/health/detailed
+
+# Check VITE_API_BASE in frontend
+docker-compose logs traffic-frontend | grep VITE_API_BASE
 ```
+
+**History page is empty**:
+- Ensure you're logged in with the same account that uploaded videos
+- Check backend logs for errors
+- Verify ENABLE_V2_PERSISTENCE=true
+- Check database has data: `docker-compose exec traffic-postgres psql -U postgres -d traffic_monitoring -c "SELECT COUNT(*) FROM videos;"`
 
 **Upload fails**:
 - Ensure video format is supported (.mp4, .avi, .mov, .mkv)
 - Check file size (max 200 MB)
-- Verify backend logs for errors
-
----
-
-## 📊 Performance Notes
-
-### Video Processing Times (CPU-only)
-- 30-second video (720p): ~45-90 seconds
-- 1-minute video (720p): ~90-180 seconds
-- 2-minute video (720p): ~180-360 seconds
-
-**Factors affecting performance**:
-- Video resolution (720p recommended)
-- Number of vehicles in frame
-- Frame rate (30 fps optimal)
-- CPU performance
-
-**Optimization tips**:
-- Use H.264 encoded videos
-- Reduce resolution if processing is slow
-- Adjust `FRAME_SKIP` to process every 2nd frame
-- Ensure adequate CPU resources in Docker
-
----
-
-## 🧪 Testing
-
-### Health Checks
-```bash
-# Backend basic health
-curl http://localhost:8080/health
-
-# Backend detailed health (includes AI service)
-curl http://localhost:8080/health/detailed
-
-# AI service health
-curl http://localhost:8000/health
-```
-
-### Upload Test Video
-```bash
-curl -X POST http://localhost:8080/api/upload-video \
-  -F "video=@test_video.mp4"
-```
-
-### Summary-only endpoint (faster)
-```bash
-curl -X POST http://localhost:8080/api/upload-video/summary \
-  -F "video=@test_video.mp4"
-```
+- Verify backend and AI service are running
+- Check browser network tab for errors
 
 ---
 
 ## 📖 Documentation
 
+- [Main README](./README.md) - This file
 - [AI Service Documentation](./ai-service/README.md) - OCR, detection, tracking
-- [Backend Documentation](./ktor-backend/README.md) - API, error handling, health
+- [Backend Documentation](./ktor-backend/README.md) - API, auth, database
 - [Frontend Documentation](./dashboard-frontend/README.md) - UI, components, styling
 
 ---
@@ -492,8 +703,11 @@ curl -X POST http://localhost:8080/api/upload-video/summary \
 - **Ktor** - Kotlin web framework
 - **FastAPI** - Python web framework
 - **React + Vite** - Frontend framework
+- **PostgreSQL** - Database system
+- **JWT (Auth0)** - Authentication library
 
 ---
 
-**System Status**: v1.5 Stabilization Complete ✅  
-**Ready for**: v2.0 Database Integration 🚀
+**System Status**: v2.0 Complete ✅  
+**Features**: Full-stack with Authentication + Database + Advanced Analytics 🚀  
+**Next**: v2.1 Enhanced Security & UX 📋

@@ -1,33 +1,46 @@
 # 🚦 Ktor Backend — Traffic Monitoring System
 
-**Current Version**: v1.5 (Stabilization) ✅  
-**Next Version**: v2.0 (Database & Authentication) 🚧
+**Current Version**: v2.0 (Database & Authentication) ✅  
+**Previous Version**: v1.5 (Stabilization)
 
-This module represents the **Backend service** of the Traffic Monitoring System. It acts as an **orchestrator** between the **AI-Service (FastAPI)** and the **Frontend Dashboard**, handling video uploads, AI communication, error management, and API exposure with enhanced reliability and observability.
+This module represents the **Backend service** of the Traffic Monitoring System. It orchestrates between the AI-Service (FastAPI) and Frontend Dashboard, handling video uploads, AI communication, database persistence, user authentication, and API exposure.
 
 ---
 
-## 🆕 What's New in v1.5
+## 🆕 What's New in v2.0
 
-### Enhanced Features
-- ✅ **Request Correlation Tracking**: Unique IDs for tracing requests through the system
-- ✅ **Enhanced Error Handling**: User-friendly error messages with detailed context
-- ✅ **Response Validation**: Automatic consistency checks for AI responses
-- ✅ **Detailed Health Checks**: Monitor both backend and AI service status
-- ✅ **Summary Endpoint**: Quick statistics without full response
-- ✅ **Structured Logging**: Better debugging with correlation IDs and metrics
-- ✅ **Graceful Shutdown**: Proper resource cleanup on service stop
+### Database Persistence
+- ✅ **PostgreSQL Integration**: All analysis results stored in database
+- ✅ **Video History**: Track all uploaded videos
+- ✅ **Violation Storage**: Searchable violation records
+- ✅ **Vehicle Tracking**: Complete vehicle and trajectory data persistence
+- ✅ **Data Relationships**: Proper foreign keys and relational integrity
 
-### Updated Data Models
-- ✅ Migrated to v1.5 AI response format (arrays instead of objects)
-- ✅ Added confidence scores and validation status
-- ✅ Added severity classification
-- ✅ Added processing metadata and statistics
+### Authentication & Authorization
+- ✅ **JWT Authentication**: Secure token-based auth
+- ✅ **User Registration**: Self-service account creation
+- ✅ **User Login**: Credential-based authentication
+- ✅ **Protected Routes**: Auth required for video uploads and V2 endpoints
+- ✅ **Password Hashing**: BCrypt for secure password storage
+
+### API Enhancements
+- ✅ **V2 Endpoints**: New RESTful endpoints for videos, violations, stats
+- ✅ **Pagination Support**: Efficient data browsing
+- ✅ **Advanced Filtering**: Search violations by multiple criteria
+- ✅ **Statistics API**: Aggregate violation analytics
+- ✅ **CSV Export**: Download violation data
+
+### Backward Compatibility
+- ✅ **V1.5 Endpoints Preserved**: All v1.5 endpoints still work
+- ✅ **Feature Flags**: Enable/disable V2 features via environment variables
+- ✅ **Optional Authentication**: Can run with or without auth
+- ✅ **Graceful Degradation**: Works without database if V2 disabled
 
 ---
 
 ## 🎯 Responsibilities
 
+### Core (V1.5)
 - ✅ Expose REST APIs for frontend consumption
 - ✅ Receive traffic videos from clients
 - ✅ Forward videos to AI-Service with correlation tracking
@@ -36,9 +49,14 @@ This module represents the **Backend service** of the Traffic Monitoring System.
 - ✅ Provide comprehensive health monitoring
 - ✅ Serve Swagger/OpenAPI documentation
 - ✅ CORS management for frontend access
-- ✅ Docker containerization
-- 📅 Database integration (v2.0)
-- 📅 User authentication (v2.0)
+
+### New in V2.0
+- ✅ **User Management**: Registration, login, JWT tokens
+- ✅ **Video Persistence**: Store all video analysis in PostgreSQL
+- ✅ **Historical Data**: Query past uploads and results
+- ✅ **Violation Tracking**: Advanced filtering and search
+- ✅ **Statistics**: Aggregate analytics and reporting
+- ✅ **Data Export**: CSV export for violations
 
 ---
 
@@ -46,6 +64,11 @@ This module represents the **Backend service** of the Traffic Monitoring System.
 
 - **Kotlin 1.9.23**
 - **Ktor 2.3.13**
+- **PostgreSQL 15** (NEW in v2.0)
+- **Exposed ORM** (NEW in v2.0)
+- **HikariCP** (connection pooling)
+- **JWT (Auth0)** (NEW in v2.0)
+- **BCrypt** (password hashing)
 - **Apache HTTP Client**
 - **kotlinx.serialization**
 - **Logback** (structured logging)
@@ -57,115 +80,80 @@ This module represents the **Backend service** of the Traffic Monitoring System.
 
 ## 📡 API Endpoints
 
-### ✅ Basic Health Check
-**URL**: `GET /health`
+### Health Endpoints
 
-**Description**: Check if backend is running
+#### Basic Health Check
+**URL**: `GET /health`
 
 **Response**:
 ```json
 {
   "status": "OK",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "timestamp": 1640000000000
 }
 ```
 
 ---
 
-### ✅ Detailed Health Check (NEW in v1.5)
+#### Detailed Health Check
 **URL**: `GET /health/detailed`
 
-**Description**: Check backend and AI service health
+**Description**: Check backend, AI service, and database health
 
 **Response**:
 ```json
 {
   "status": "OK",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "timestamp": 1640000000000,
   "services": {
     "backend": "OK",
-    "ai_service": "OK"
+    "ai_service": "OK",
+    "database": "OK"
   }
 }
 ```
 
 **Status Codes**:
 - `200 OK`: All services healthy
-- `503 Service Unavailable`: AI service unavailable
+- `503 Service Unavailable`: One or more services unavailable
 
 ---
 
-### 🎥 Upload & Analyze Video (Enhanced)
+### V1.5 Endpoints (Video Upload)
+
+#### Upload & Analyze Video (Full Response)
 **URL**: `POST /api/upload-video`
 
-**Description**: Upload video for complete AI analysis
+**Authentication**: **Required** when `ENABLE_AUTHENTICATION=true` (V2.0)
+
+**Headers**:
+```
+Authorization: Bearer <jwt_token>  # Required in V2.0 if auth enabled
+Content-Type: multipart/form-data
+```
 
 **Request**:
-- **Content-Type**: `multipart/form-data`
 - **Field**: `video` (file)
 - **Supported formats**: `.mp4`, `.avi`, `.mov`, `.mkv`
 - **Max size**: 200 MB
 
-**Enhanced Processing**:
-1. Request correlation ID generated
-2. File validation (format, size)
-3. Forward to AI-Service with tracking
-4. Receive and validate AI response
-5. Log metrics and statistics
-6. Return enriched response
-
-**Response** (v1.5 format):
-```json
-{
-  "status": "success",
-  "processing_time_seconds": 45.3,
-  "video_info": {
-    "filename": "traffic_video.mp4",
-    "duration_seconds": 30.5,
-    "fps": 30.0,
-    "total_frames": 915,
-    "processed_frames": 458
-  },
-  "summary": {
-    "total_vehicles_tracked": 12,
-    "vehicles_with_plates": 8,
-    "violations_detected": 2,
-    "average_speed_kmh": 48.5
-  },
-  "violations": [
-    {
-      "violation_id": "v_001",
-      "plate_number": "123TUN456",
-      "plate_confidence": 0.92,
-      "plate_validated": true,
-      "speed_kmh": 72.4,
-      "speed_limit_kmh": 50.0,
-      "overspeed_kmh": 22.4,
-      "timestamp_seconds": 3.2,
-      "frame_number": 96,
-      "severity": "high"
-    }
-  ],
-  "tracked_vehicles": [...],
-  "configuration": {...}
-}
-```
+**Response**: Full v1.5 AI response format (see AI-Service README)
 
 **Status Codes**:
 - `200 OK`: Video processed successfully
+- `401 Unauthorized`: Missing or invalid token (V2.0)
 - `400 Bad Request`: Invalid file format or too large
 - `503 Service Unavailable`: AI-Service not reachable
 - `504 Gateway Timeout`: Processing timeout (>10 min)
-- `502 Bad Gateway`: AI-Service error
 
 ---
 
-### 📊 Upload Summary Only (NEW in v1.5)
+#### Upload & Analyze Video (Summary Only)
 **URL**: `POST /api/upload-video/summary`
 
-**Description**: Upload video and get summary statistics only (faster response)
+**Authentication**: **Required** when `ENABLE_AUTHENTICATION=true` (V2.0)
 
 **Request**: Same as full upload
 
@@ -183,103 +171,218 @@ This module represents the **Backend service** of the Traffic Monitoring System.
 
 ---
 
-## 🚀 Enhanced Features (v1.5)
+### V2.0 Endpoints
 
-### 1. Request Correlation Tracking
-Every request gets a unique correlation ID for end-to-end tracing:
+#### User Registration
+**URL**: `POST /api/v2/auth/register`
 
-**Log Example**:
-```
-[abc-123-def] ▶ Received upload request
-[abc-123-def] ℹ Processing video 'traffic.mp4' (15.34 MB)
-[abc-123-def] ✓ Upload complete in 45.3s: violations=2 vehicles=12
-```
+**Authentication**: Not required
 
-### 2. Enhanced Error Handling
-User-friendly error messages with actionable details:
-
-**Example Error Response**:
+**Request**:
 ```json
 {
-  "code": "AI_TIMEOUT",
-  "message": "AI processing took too long",
-  "timestamp": 1640000000000,
-  "details": "The video analysis exceeded the maximum processing time (10 minutes). Try uploading a shorter video or reducing its resolution."
+  "email": "user@example.com",
+  "password": "securepassword",
+  "role": "USER"  // Optional, defaults to USER
 }
 ```
 
-**Error Types**:
-- `BAD_REQUEST`: Invalid file format or parameters
-- `AI_UNAVAILABLE`: AI service not reachable
-- `AI_UNREACHABLE`: Invalid AI endpoint
-- `AI_TIMEOUT`: Processing timeout
-- `AI_ERROR`: AI service returned error
-- `INTERNAL_ERROR`: Backend error
-- `UNEXPECTED_ERROR`: Unknown error
-
-### 3. Response Validation
-Automatic validation of AI responses:
-- Status verification
-- Count consistency checks
-- Confidence threshold warnings
-- Validation status tracking
-
-**Validation Warnings**:
-```
-[abc-123-def] Response validation warnings:
-[abc-123-def]   - Low confidence violation: plate=123TUN456 confidence=0.45
-[abc-123-def]   - Unvalidated violation: plate=789ABC012
+**Response**:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresAt": 1640003600000,
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "USER",
+    "createdAt": "2024-01-01T12:00:00"
+  }
+}
 ```
 
-### 4. Structured Logging
-Enhanced logging with context:
+---
 
-**Log Format**:
-```
-HH:mm:ss LEVEL logger-name - message
+#### User Login
+**URL**: `POST /api/v2/auth/login`
+
+**Authentication**: Not required
+
+**Request**:
+```json
+{
+  "email": "user@example.com",
+  "password": "securepassword"
+}
 ```
 
-**Example**:
+**Response**: Same as registration
+
+---
+
+#### List Videos
+**URL**: `GET /api/v2/videos?page=0&size=20`
+
+**Authentication**: Required (JWT)
+
+**Query Parameters**:
+- `page`: Page number (default: 0)
+- `size`: Items per page (default: 20)
+
+**Response**:
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "filename": "traffic.mp4",
+      "uploadedAt": "2024-01-01T12:00:00",
+      "durationSeconds": 30.5,
+      "fps": 30.0,
+      "totalFrames": 915,
+      "processedFrames": 458,
+      "processingTimeSeconds": 45.3,
+      "status": "COMPLETED",
+      "aiStatus": "SUCCESS",
+      "summary": {
+        "totalVehicles": 12,
+        "vehiclesWithPlates": 8,
+        "violations": 2,
+        "averageSpeed": 48.5
+      }
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 50,
+  "totalPages": 3
+}
 ```
-14:30:45 INFO  AIClient - [abc-123] AI ▶ Sending video 'traffic.mp4' (15.34 MB)
-14:31:30 INFO  AIClient - [abc-123] AI ◀ Received response 200 OK in 45.0s
-14:31:30 INFO  AIClient - [abc-123] AI ℹ Results: violations=2 vehicles=12 plates=8
+
+---
+
+#### Get Video Details
+**URL**: `GET /api/v2/videos/{id}`
+
+**Authentication**: Required (JWT)
+
+**Response**: Single video object (same as list item)
+
+---
+
+#### Delete Video
+**URL**: `DELETE /api/v2/videos/{id}`
+
+**Authentication**: Required (JWT)
+
+**Response**: `204 No Content` on success
+
+---
+
+#### Filter Violations
+**URL**: `POST /api/v2/violations/filter`
+
+**Authentication**: Required (JWT)
+
+**Request**:
+```json
+{
+  "severity": "HIGH",          // Optional: LOW, MEDIUM, HIGH, CRITICAL
+  "plateNumber": "123",        // Optional: partial match
+  "startDate": "2024-01-01T00:00:00",  // Optional: ISO format
+  "endDate": "2024-01-31T23:59:59",    // Optional: ISO format
+  "minSpeed": 60.0,            // Optional
+  "maxSpeed": 100.0,           // Optional
+  "validated": true,           // Optional: plate validation status
+  "page": 0,
+  "size": 20
+}
 ```
+
+**Response**: Paginated violation list
+
+---
+
+#### Get Violation Details
+**URL**: `GET /api/v2/violations/{id}`
+
+**Authentication**: Required (JWT)
+
+**Response**: Single violation object
+
+---
+
+#### Get Statistics
+**URL**: `GET /api/v2/stats`
+
+**Authentication**: Required (JWT)
+
+**Response**:
+```json
+{
+  "total": 150,
+  "averageSpeed": 65.3,
+  "bySeverity": {
+    "LOW": 50,
+    "MEDIUM": 60,
+    "HIGH": 30,
+    "CRITICAL": 10
+  }
+}
+```
+
+---
+
+#### Export Violations CSV
+**URL**: `GET /api/v2/violations/export/csv`
+
+**Authentication**: Required (JWT)
+
+**Response**: CSV file download
 
 ---
 
 ## 🔧 Configuration
 
-### application.conf
-```hocon
-ktor {
-  deployment {
-    port = 8080
-    host = "0.0.0.0"
-  }
+### Environment Variables
 
-  application {
-    modules = [ com.traffic.ApplicationKt.module ]
-  }
+#### Feature Flags
+```bash
+# Enable V2 database persistence
+ENABLE_V2_PERSISTENCE=true
 
-  ai {
-    endpoint = "http://localhost:8000/api/process-video"
-    timeout = 600000  # 10 minutes in milliseconds
-  }
-}
+# Enable authentication for video uploads and V2 endpoints
+ENABLE_AUTHENTICATION=true
 ```
 
-### Environment Variables
-- `KTOR_AI_ENDPOINT`: Override AI service URL
-- `KTOR_AI_TIMEOUT_MS`: Override timeout (default: 600000)
-- `LOG_LEVEL`: Logging level (default: INFO)
+#### Database Configuration
+```bash
+DB_HOST=traffic-postgres         # Database hostname
+DB_PORT=5432                      # Database port
+DB_NAME=traffic_monitoring        # Database name
+DB_USER=postgres                  # Database user
+DB_PASSWORD=postgres              # Database password
+DB_POOL_SIZE=10                   # Connection pool size
+```
 
-**Docker Example**:
-```yaml
-environment:
-  KTOR_AI_ENDPOINT: http://traffic-ai-service:8000/api/process-video
-  KTOR_AI_TIMEOUT_MS: 600000
-  LOG_LEVEL: INFO
+#### JWT Configuration
+```bash
+JWT_SECRET=your-secret-key-change-in-production
+JWT_ISSUER=traffic-monitoring-system
+JWT_AUDIENCE=traffic-monitoring-api
+JWT_REALM=Access to Traffic Monitoring API
+JWT_VALIDITY_MS=3600000          # 1 hour
+```
+
+#### AI Service Configuration
+```bash
+KTOR_AI_ENDPOINT=http://traffic-ai-service:8000/api/process-video
+KTOR_AI_TIMEOUT_MS=600000        # 10 minutes
+```
+
+#### Logging
+```bash
+LOG_LEVEL=INFO                    # DEBUG, INFO, WARN, ERROR
 ```
 
 ---
@@ -292,36 +395,44 @@ ktor-backend/
 │   └── main/
 │       ├── kotlin/
 │       │   └── com/traffic/
+│       │       ├── auth/
+│       │       │   └── AuthService.kt        # NEW: Authentication logic
 │       │       ├── client/
-│       │       │   └── AIClient.kt          # Enhanced AI communication
+│       │       │   └── AIClient.kt           # Enhanced AI communication
+│       │       ├── database/
+│       │       │   ├── DatabaseFactory.kt    # NEW: DB connection & health
+│       │       │   └── Tables.kt             # NEW: Database schema
+│       │       ├── dto/
+│       │       │   ├── ai/                   # AI request/response models
+│       │       │   ├── request/              # NEW: API request models
+│       │       │   └── response/             # NEW: API response models
 │       │       ├── models/
-│       │       │   ├── AIRequest.kt         
-│       │       │   ├── AIResponse.kt        # v1.5 data models
-│       │       │   ├── ErrorResponse.kt     # Enhanced error format
-│       │       │   └── HealthResponse.kt    # Enhanced health format
+│       │       │   └── Enums.kt              # NEW: UserRole, VideoStatus, etc.
 │       │       ├── plugins/
-│       │       │   ├── CallLogging.kt       # Request logging
-│       │       │   ├── CORS.kt              # Cross-origin config
-│       │       │   ├── Routing.kt           # Route registration
-│       │       │   ├── Serialization.kt     # JSON config
-│       │       │   ├── StatusPages.kt       # Enhanced error handling
-│       │       │   └── Swagger.kt           # API docs
+│       │       │   ├── CallLogging.kt
+│       │       │   ├── CORS.kt
+│       │       │   ├── JWT.kt                # NEW: JWT authentication
+│       │       │   ├── Routing.kt            # Enhanced routing
+│       │       │   ├── Serialization.kt
+│       │       │   ├── StatusPages.kt        # Enhanced error handling
+│       │       │   └── Swagger.kt
 │       │       ├── routes/
-│       │       │   ├── AIRoutes.kt          # Video upload endpoints
-│       │       │   └── HealthRoutes.kt      # Health endpoints
-│       │       └── Application.kt           # Enhanced entry point
+│       │       │   ├── AIRoutes.kt           # Enhanced: Protected with auth
+│       │       │   ├── HealthRoutes.kt       # Enhanced: DB health check
+│       │       │   └── V2Routes.kt           # NEW: V2 API endpoints
+│       │       ├── service/
+│       │       │   ├── VideoService.kt       # NEW: Video persistence
+│       │       │   └── ViolationService.kt   # NEW: Violation queries
+│       │       └── Application.kt            # Enhanced: DB & auth setup
 │       └── resources/
 │           ├── application.conf
-│           ├── logback.xml                  # Structured logging
+│           ├── logback.xml
 │           └── swagger/
-│               └── documentation.yaml       # v1.5 API spec
-├── build.gradle.kts
-├── Dockerfile                               # Multi-stage build
+│               └── documentation.yaml        # Updated for V2
+├── build.gradle.kts                          # Updated dependencies
+├── Dockerfile
 ├── gradle.properties
-├── gradlew
-├── gradlew.bat
-├── settings.gradle.kts
-└── README.md
+└── README.md                                 # This file
 ```
 
 ---
@@ -330,18 +441,49 @@ ktor-backend/
 
 ### Prerequisites
 - JDK 17+
-- Gradle 8+ (or use wrapper)
+- Gradle 8+
+- PostgreSQL 15+ (for V2 features)
 
-### 1️⃣ Start the Server
+### 1️⃣ Setup Database (V2)
+```bash
+# Create database
+createdb traffic_monitoring
+
+# Or use Docker
+docker run -d \
+  --name traffic-postgres \
+  -e POSTGRES_DB=traffic_monitoring \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  postgres:15-alpine
+```
+
+### 2️⃣ Configure Environment
+```bash
+# Copy example env file
+cp .env.example .env
+
+# Edit configuration
+nano .env
+
+# Required for V2:
+ENABLE_V2_PERSISTENCE=true
+ENABLE_AUTHENTICATION=true
+DB_HOST=localhost
+DB_PASSWORD=your_password
+JWT_SECRET=your-secret-key
+```
+
+### 3️⃣ Start the Server
 ```bash
 cd ktor-backend
 ./gradlew run
 ```
 
-### 2️⃣ Access the API
+### 4️⃣ Access the API
 - **Base URL**: http://localhost:8080
-- **Health**: http://localhost:8080/health
-- **Detailed Health**: http://localhost:8080/health/detailed
+- **Health**: http://localhost:8080/health/detailed
 - **Swagger**: http://localhost:8080/swagger
 
 ---
@@ -356,15 +498,20 @@ docker build -t traffic-ktor-backend .
 ### Run Container
 ```bash
 docker run -p 8080:8080 \
+  -e ENABLE_V2_PERSISTENCE=true \
+  -e ENABLE_AUTHENTICATION=true \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PASSWORD=postgres \
+  -e JWT_SECRET=your-secret \
   -e KTOR_AI_ENDPOINT=http://host.docker.internal:8000/api/process-video \
   traffic-ktor-backend
 ```
 
-### Multi-Stage Build Benefits
-- ✅ Smaller final image (~200MB)
-- ✅ No build tools in runtime
-- ✅ Faster deployments
-- ✅ Better security
+### Run with Docker Compose
+```bash
+# From project root
+docker-compose up traffic-ktor-backend
+```
 
 ---
 
@@ -375,131 +522,254 @@ docker run -p 8080:8080 \
 # Basic health
 curl http://localhost:8080/health
 
-# Detailed health (includes AI service)
+# Detailed health (includes AI service and database)
 curl http://localhost:8080/health/detailed
 ```
 
-### Upload Video (Full Response)
+### User Registration
 ```bash
+curl -X POST http://localhost:8080/api/v2/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "securepass123"
+  }'
+```
+
+### User Login
+```bash
+curl -X POST http://localhost:8080/api/v2/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "securepass123"
+  }'
+```
+
+### Upload Video (Authenticated)
+```bash
+# Get token from login response
+TOKEN="your-jwt-token"
+
 curl -X POST http://localhost:8080/api/upload-video \
+  -H "Authorization: Bearer $TOKEN" \
   -F "video=@test_video.mp4"
 ```
 
-### Upload Video (Summary Only)
+### List Videos
 ```bash
-curl -X POST http://localhost:8080/api/upload-video/summary \
-  -F "video=@test_video.mp4"
+curl http://localhost:8080/api/v2/videos?page=0&size=10 \
+  -H "Authorization: Bearer $TOKEN"
 ```
+
+### Get Statistics
+```bash
+curl http://localhost:8080/api/v2/stats \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## 🔒 Authentication Flow
+
+### 1. Register User
+```javascript
+POST /api/v2/auth/register
+{
+  "email": "user@example.com",
+  "password": "securepassword"
+}
+
+Response: { "token": "...", "user": {...} }
+```
+
+### 2. Use Token in Requests
+```javascript
+// Store token
+localStorage.setItem('token', response.token);
+
+// Include in subsequent requests
+headers: {
+  'Authorization': `Bearer ${token}`
+}
+```
+
+### 3. Token Expiration
+- Tokens expire after 1 hour (configurable)
+- Frontend should handle 401 responses and redirect to login
+- Refresh tokens coming in future version
+
+---
+
+## 📊 Database Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'USER',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Videos Table
+```sql
+CREATE TABLE videos (
+  id UUID PRIMARY KEY,
+  uploaded_by UUID REFERENCES users(id),
+  filename VARCHAR(255),
+  uploaded_at TIMESTAMP DEFAULT NOW(),
+  duration_seconds DOUBLE PRECISION,
+  fps DOUBLE PRECISION,
+  total_frames INTEGER,
+  processed_frames INTEGER,
+  processing_time_seconds DOUBLE PRECISION,
+  status VARCHAR(50),
+  ai_status VARCHAR(20),
+  speed_limit_kmh DOUBLE PRECISION,
+  pixel_to_meter DOUBLE PRECISION
+);
+```
+
+### Violations Table
+```sql
+CREATE TABLE violations (
+  id UUID PRIMARY KEY,
+  video_id UUID REFERENCES videos(id) ON DELETE CASCADE,
+  vehicle_id UUID REFERENCES vehicles(id),
+  plate_number VARCHAR(50),
+  plate_confidence DOUBLE PRECISION,
+  plate_validated BOOLEAN,
+  speed_kmh DOUBLE PRECISION,
+  speed_limit_kmh DOUBLE PRECISION,
+  overspeed_kmh DOUBLE PRECISION,
+  timestamp_seconds DOUBLE PRECISION,
+  frame_number INTEGER,
+  severity VARCHAR(20),
+  detected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+(See `Tables.kt` for complete schema)
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Issue: "AI_UNAVAILABLE"
-**Cause**: AI service not reachable
-
-**Solution**:
+### Database Connection Fails
 ```bash
-# Check AI service
-curl http://localhost:8000/health
+# Check PostgreSQL is running
+psql -U postgres -d traffic_monitoring
 
-# Check detailed health to see AI status
+# Check connection settings
+echo $DB_HOST
+echo $DB_PORT
+
+# Test connection
 curl http://localhost:8080/health/detailed
-
-# Verify KTOR_AI_ENDPOINT
-echo $KTOR_AI_ENDPOINT
 ```
 
-### Issue: Port 8080 already in use
-**Solution**:
+### Authentication Not Working
 ```bash
-# Find process
-lsof -i :8080
+# Check JWT secret is set
+echo $JWT_SECRET
 
-# Kill process
-kill -9 <PID>
+# Verify token in request headers
+curl -v http://localhost:8080/api/v2/videos \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Check logs for JWT errors
+docker logs traffic-ktor-backend
 ```
 
-### Issue: Logs not showing
-**Solution**:
-Check `logback.xml` configuration or adjust `LOG_LEVEL` environment variable.
+### Video Upload Returns 401
+- Ensure authentication is enabled: `ENABLE_AUTHENTICATION=true`
+- Verify you're including the JWT token in the Authorization header
+- Check token hasn't expired (default: 1 hour)
+- Try logging in again to get a fresh token
 
 ---
 
-## 📊 Performance Metrics
+## 📈 Performance
 
-### Request Processing
-- Video receive: < 1 second
-- AI forward: ~0.5 seconds
-- AI processing: 45-180 seconds (video-dependent)
-- Response validation: < 0.1 seconds
-- Response return: < 1 second
+### Resource Usage
+- **Idle**: ~150-200 MB RAM
+- **Processing**: +100-200 MB during video upload
+- **Database**: ~50-100 MB RAM (depends on data volume)
+- **Peak**: ~500 MB total
 
-### Memory Usage
-- Idle: ~150 MB
-- Processing video: +100-200 MB
-- Peak: ~400 MB
-
----
-
-## 🚀 v2.0 Roadmap
-
-### Planned Features
-- [ ] PostgreSQL database integration
-- [ ] JWT authentication
-- [ ] User management
-- [ ] Violation history storage
-- [ ] Advanced filtering and pagination
-- [ ] Statistics endpoints
-- [ ] Report generation
-- [ ] Caching layer (Redis)
-- [ ] Rate limiting
-- [ ] WebSocket support for real-time updates
+### Optimization Tips
+- Increase DB connection pool for high concurrency
+- Enable database indexing for faster queries
+- Use pagination for large result sets
+- Consider Redis for session caching (future enhancement)
 
 ---
 
-## 📖 Dependencies
+## 🚀 Migration Guide (v1.5 → v2.0)
 
-```kotlin
-// Server
-implementation("io.ktor:ktor-server-core-jvm:2.3.13")
-implementation("io.ktor:ktor-server-netty-jvm:2.3.13")
+### Breaking Changes
+- **Video uploads now require authentication** when `ENABLE_AUTHENTICATION=true`
+- Frontend must pass JWT token in Authorization header
+- Database is required for V2 features
 
-// Serialization
-implementation("io.ktor:ktor-server-content-negotiation-jvm:2.3.13")
-implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.3.13")
+### Migration Steps
 
-// Plugins
-implementation("io.ktor:ktor-server-call-logging-jvm:2.3.13")
-implementation("io.ktor:ktor-server-cors-jvm:2.3.13")
-implementation("io.ktor:ktor-server-status-pages:2.3.13")
-implementation("io.ktor:ktor-server-swagger:2.3.13")
+1. **Setup Database**:
+```bash
+docker-compose up traffic-postgres
+```
 
-// Client
-implementation("io.ktor:ktor-client-core-jvm:2.3.13")
-implementation("io.ktor:ktor-client-apache-jvm:2.3.13")
-implementation("io.ktor:ktor-client-content-negotiation-jvm:2.3.13")
+2. **Enable V2 Features**:
+```bash
+export ENABLE_V2_PERSISTENCE=true
+export ENABLE_AUTHENTICATION=true
+```
 
-// Logging
-implementation("ch.qos.logback:logback-classic:1.5.6")
+3. **Update Frontend**:
+- Add login/register UI
+- Store JWT token
+- Pass token in upload requests
+
+4. **Test**:
+```bash
+# Register user
+curl -X POST http://localhost:8080/api/v2/auth/register \
+  -d '{"email":"test@test.com","password":"pass123"}'
+
+# Upload with token
+curl -X POST http://localhost:8080/api/upload-video \
+  -H "Authorization: Bearer TOKEN" \
+  -F "video=@test.mp4"
+```
+
+### Backward Compatibility
+To run in v1.5 mode (no auth, no database):
+```bash
+export ENABLE_V2_PERSISTENCE=false
+export ENABLE_AUTHENTICATION=false
 ```
 
 ---
 
-## 🔗 Integration Points
+## 🔮 Roadmap
 
-### With AI-Service
-- **Endpoint**: `POST http://traffic-ai-service:8000/api/process-video`
-- **Format**: `multipart/form-data`
-- **Timeout**: 600 seconds (10 minutes)
-- **Headers**: `X-Correlation-ID` for tracking
+### v2.1 (Next)
+- [ ] Refresh token support
+- [ ] User profile management
+- [ ] Role-based permissions
+- [ ] Audit logging
 
-### With Frontend
-- **Base URL**: `http://traffic-ktor-backend:8080`
-- **CORS**: Enabled for all origins (MVP)
-- **Content-Type**: `application/json`
+### v3.0 (Future)
+- [ ] Real-time notifications (WebSocket)
+- [ ] Multi-tenancy support
+- [ ] Advanced analytics dashboard
+- [ ] Video streaming integration
+- [ ] Kubernetes deployment
 
 ---
 
-**Backend Status**: v1.5 Stabilization Complete ✅  
-**Ready for**: v2.0 Database Integration 🚀
+**Backend Status**: v2.0 Complete ✅  
+**Features**: Database Persistence + JWT Authentication 🔒

@@ -1,6 +1,6 @@
 package com.traffic.dto.response
 
-import com.traffic.domain.models.ViolationSeverity
+import com.traffic.models.ViolationSeverity
 import kotlinx.serialization.Serializable
 
 @Serializable

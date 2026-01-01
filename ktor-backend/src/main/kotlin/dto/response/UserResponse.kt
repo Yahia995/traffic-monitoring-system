@@ -1,6 +1,6 @@
 package com.traffic.dto.response
 
-import com.traffic.domain.models.UserRole
+import com.traffic.models.UserRole
 import kotlinx.serialization.Serializable
 
 @Serializable

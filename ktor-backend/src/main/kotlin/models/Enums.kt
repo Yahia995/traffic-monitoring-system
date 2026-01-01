@@ -1,4 +1,4 @@
-package com.traffic.domain.models
+package com.traffic.models
 
 import kotlinx.serialization.Serializable
 

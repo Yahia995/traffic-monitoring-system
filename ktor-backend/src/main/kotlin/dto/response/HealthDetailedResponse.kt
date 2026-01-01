@@ -14,5 +14,5 @@ data class HealthDetailedResponse(
 data class ServicesStatus(
     val backend: String,
     val ai_service: String,
-    val database: String? = null
+    val database: String
 )

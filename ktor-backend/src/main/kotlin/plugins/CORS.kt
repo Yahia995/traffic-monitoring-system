@@ -9,8 +9,11 @@ import io.ktor.server.plugins.cors.routing.CORS
 fun Application.configureCors() {
     install(CORS) {
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Options)
         anyHost()
     }
 }

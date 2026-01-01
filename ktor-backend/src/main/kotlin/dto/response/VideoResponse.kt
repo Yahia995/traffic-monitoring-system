@@ -1,7 +1,7 @@
 package com.traffic.dto.response
 
-import com.traffic.domain.models.AIStatus
-import com.traffic.domain.models.VideoStatus
+import com.traffic.models.AIStatus
+import com.traffic.models.VideoStatus
 import kotlinx.serialization.Serializable
 
 @Serializable

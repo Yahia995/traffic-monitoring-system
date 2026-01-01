@@ -1,8 +1,3 @@
-"""
-Enhanced configuration with environment variable support and validation
-Version 1.5
-"""
-
 import os
 from typing import Tuple
 
