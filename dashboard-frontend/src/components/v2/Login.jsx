@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { login, register } from "../../api/v2";
 
+const LogoMark = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+);
+
 export default function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
@@ -14,10 +22,9 @@ export default function Login({ onLogin }) {
     setError(null);
 
     try {
-      const result = isRegister 
+      const result = isRegister
         ? await register(email, password)
         : await login(email, password);
-      
       onLogin(result);
     } catch (err) {
       setError(err.message || "Authentication failed");
@@ -30,7 +37,9 @@ export default function Login({ onLogin }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <span className="login-icon">🚦</span>
+          <span className="login-icon">
+            <LogoMark />
+          </span>
           <h1>Traffic Monitoring</h1>
           <p>Sign in to continue</p>
         </div>
@@ -64,7 +73,7 @@ export default function Login({ onLogin }) {
 
           {error && (
             <div className="error-message">
-              <span className="error-icon">⚠️</span>
+              <span className="error-icon">&#9888;</span>
               <span>{error}</span>
             </div>
           )}
@@ -73,7 +82,7 @@ export default function Login({ onLogin }) {
             {loading ? (
               <>
                 <span className="spinner"></span>
-                {isRegister ? "Creating account..." : "Signing in..."}
+                {isRegister ? "Creating account…" : "Signing in…"}
               </>
             ) : (
               isRegister ? "Create Account" : "Sign In"
@@ -83,15 +92,12 @@ export default function Login({ onLogin }) {
           <div className="login-footer">
             <button
               type="button"
-              onClick={() => {
-                setIsRegister(!isRegister);
-                setError(null);
-              }}
+              onClick={() => { setIsRegister(!isRegister); setError(null); }}
               className="toggle-mode"
               disabled={loading}
             >
-              {isRegister 
-                ? "Already have an account? Sign in" 
+              {isRegister
+                ? "Already have an account? Sign in"
                 : "Don't have an account? Sign up"}
             </button>
           </div>

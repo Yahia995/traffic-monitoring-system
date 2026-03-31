@@ -43,6 +43,9 @@ RUN pip install --upgrade pip \
 # Copy source
 COPY . .
 
+# This ensures the internal user can read/write the model and cache files
+RUN chmod -R 777 /app
+
 # Runtime
 EXPOSE 8000
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

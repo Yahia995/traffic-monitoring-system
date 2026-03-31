@@ -23,37 +23,35 @@ export default function App() {
       <header className="app-header">
         <div className="header-content">
           <h1 className="app-title">
-            <span className="title-icon">🚦</span>
+            <span className="title-icon"></span>
             Traffic Monitoring System
           </h1>
           <div className="version-badge">v1.5</div>
         </div>
-        <p className="app-subtitle">
-          AI-Powered Traffic Violation Detection
-        </p>
+        <p className="app-subtitle">AI-Powered Traffic Violation Detection</p>
       </header>
 
       <main className="app-main">
         {!data ? (
           <div className="upload-section">
             <div className="welcome-message">
-              <h2>Welcome to Traffic Monitoring</h2>
+              <h2>Traffic Video Analysis</h2>
               <p>Upload a traffic video to detect vehicles, recognize license plates, and identify speed violations.</p>
               <div className="features-list">
                 <div className="feature-item">
-                  <span className="feature-icon">🎯</span>
+                  <span className="feature-icon">01</span>
                   <span>Vehicle Detection</span>
                 </div>
                 <div className="feature-item">
-                  <span className="feature-icon">🔍</span>
-                  <span>License Plate OCR</span>
+                  <span className="feature-icon">02</span>
+                  <span>Plate OCR</span>
                 </div>
                 <div className="feature-item">
-                  <span className="feature-icon">📊</span>
+                  <span className="feature-icon">03</span>
                   <span>Speed Analysis</span>
                 </div>
                 <div className="feature-item">
-                  <span className="feature-icon">⚠️</span>
+                  <span className="feature-icon">04</span>
                   <span>Violation Detection</span>
                 </div>
               </div>
@@ -68,7 +66,7 @@ export default function App() {
                 <span className="video-name">{data.video_info.filename}</span>
               </div>
               <button onClick={handleReset} className="reset-button">
-                🔄 New Analysis
+                New Analysis
               </button>
             </div>
 
@@ -80,8 +78,8 @@ export default function App() {
                   className={`tab ${activeTab === 'violations' ? 'active' : ''}`}
                   onClick={() => setActiveTab('violations')}
                 >
-                  <span className="tab-icon">⚠️</span>
-                  <span>Violations</span>
+                  <span className="tab-icon"></span>
+                  Violations
                   {data.summary.violations_detected > 0 && (
                     <span className="tab-badge">{data.summary.violations_detected}</span>
                   )}
@@ -90,16 +88,16 @@ export default function App() {
                   className={`tab ${activeTab === 'vehicles' ? 'active' : ''}`}
                   onClick={() => setActiveTab('vehicles')}
                 >
-                  <span className="tab-icon">🚗</span>
-                  <span>All Vehicles</span>
+                  <span className="tab-icon"></span>
+                  All Vehicles
                   <span className="tab-badge">{data.summary.total_vehicles_tracked}</span>
                 </button>
                 <button
                   className={`tab ${activeTab === 'raw' ? 'active' : ''}`}
                   onClick={() => setActiveTab('raw')}
                 >
-                  <span className="tab-icon">📝</span>
-                  <span>Raw Data</span>
+                  <span className="tab-icon"></span>
+                  Raw Data
                 </button>
               </div>
 
@@ -109,16 +107,18 @@ export default function App() {
                     {data.summary.violations_detected > 0 ? (
                       <>
                         <div className="panel-header">
-                          <h3>Detected Violations</h3>
-                          <p className="panel-description">
-                            {data.summary.violations_detected} vehicle{data.summary.violations_detected !== 1 ? 's' : ''} exceeded the speed limit of {data.configuration.speed_limit_kmh} km/h
-                          </p>
+                          <div>
+                            <h3>Detected Violations</h3>
+                            <p className="panel-description">
+                              {data.summary.violations_detected} vehicle{data.summary.violations_detected !== 1 ? 's' : ''} exceeded the speed limit of {data.configuration.speed_limit_kmh} km/h
+                            </p>
+                          </div>
                         </div>
                         <ViolationsTable violations={data.violations} />
                       </>
                     ) : (
                       <div className="empty-state success">
-                        <div className="empty-icon">✅</div>
+                        <div className="empty-icon">&#10003;</div>
                         <h3>No Violations Detected</h3>
                         <p>All vehicles were within the speed limit</p>
                         <div className="success-stats">
@@ -139,10 +139,12 @@ export default function App() {
                 {activeTab === 'vehicles' && (
                   <div className="tab-panel">
                     <div className="panel-header">
-                      <h3>All Tracked Vehicles</h3>
-                      <p className="panel-description">
-                        Complete tracking data for all {data.summary.total_vehicles_tracked} detected vehicles
-                      </p>
+                      <div>
+                        <h3>All Tracked Vehicles</h3>
+                        <p className="panel-description">
+                          Complete tracking data for all {data.summary.total_vehicles_tracked} detected vehicles
+                        </p>
+                      </div>
                     </div>
                     <VehicleDetails vehicles={data.tracked_vehicles} />
                   </div>
@@ -159,7 +161,7 @@ export default function App() {
                         }}
                         className="copy-button"
                       >
-                        📋 Copy to Clipboard
+                        Copy to Clipboard
                       </button>
                     </div>
                     <pre className="json-display">
@@ -174,7 +176,7 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Traffic Monitoring System v1.5 • Enhanced with AI-powered OCR and validation</p>
+        Traffic Monitoring System v1.5 &nbsp;·&nbsp; Enhanced with AI-powered OCR and validation
       </footer>
     </div>
   );

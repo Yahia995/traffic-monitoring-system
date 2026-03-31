@@ -8,26 +8,14 @@ export default function ViolationsTable({ violations }) {
   if (!violations || violations.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">✅</div>
+        <div className="empty-icon">&#10003;</div>
         <p className="empty-text">No violations detected</p>
         <p className="empty-subtext">All vehicles were within the speed limit</p>
       </div>
     );
   }
 
-  const getSeverityIcon = (severity) => {
-    const icons = {
-      low: '🟢',
-      medium: '🟡',
-      high: '🟠',
-      critical: '🔴'
-    };
-    return icons[severity] || '⚪';
-  };
-
-  const getSeverityClass = (severity) => {
-    return `severity-${severity}`;
-  };
+  const getSeverityClass = (severity) => `severity-${severity}`;
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -102,13 +90,15 @@ export default function ViolationsTable({ violations }) {
     window.URL.revokeObjectURL(url);
   };
 
+  const sortArrow = (col) => sortBy === col ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : '';
+
   return (
     <div className="violations-container">
       <div className="violations-controls">
         <div className="filter-group">
-          <label>Filter by severity:</label>
-          <select 
-            value={filterSeverity} 
+          <label>Severity:</label>
+          <select
+            value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
             className="severity-filter"
           >
@@ -121,7 +111,7 @@ export default function ViolationsTable({ violations }) {
         </div>
 
         <button onClick={exportToCSV} className="export-button">
-          📥 Export CSV
+          Export CSV
         </button>
       </div>
 
@@ -130,42 +120,40 @@ export default function ViolationsTable({ violations }) {
           <thead>
             <tr>
               <th onClick={() => handleSort('severity')} className="sortable">
-                Severity {sortBy === 'severity' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Severity{sortArrow('severity')}
               </th>
               <th>Plate</th>
               <th onClick={() => handleSort('speed')} className="sortable">
-                Speed {sortBy === 'speed' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Speed{sortArrow('speed')}
               </th>
               <th>Limit</th>
               <th onClick={() => handleSort('overspeed')} className="sortable">
-                Over {sortBy === 'overspeed' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Over{sortArrow('overspeed')}
               </th>
               <th onClick={() => handleSort('timestamp')} className="sortable">
-                Time {sortBy === 'timestamp' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Time{sortArrow('timestamp')}
               </th>
               <th onClick={() => handleSort('confidence')} className="sortable">
-                Confidence {sortBy === 'confidence' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Confidence{sortArrow('confidence')}
               </th>
             </tr>
           </thead>
           <tbody>
             {filteredViolations.map((violation) => (
-              <tr 
-                key={violation.violation_id} 
+              <tr
+                key={violation.violation_id}
                 className={getSeverityClass(violation.severity)}
               >
                 <td className="severity-cell">
                   <span className="severity-badge">
-                    {getSeverityIcon(violation.severity)}
+                    <span className="sev-dot"></span>
                     <span className="severity-label">{violation.severity}</span>
                   </span>
                 </td>
                 <td className="plate-cell">
                   <span className="plate-number">{violation.plate_number}</span>
                   {!violation.plate_validated && (
-                    <span className="validation-warning" title="Plate not validated">
-                      ⚠️
-                    </span>
+                    <span className="validation-warning" title="Plate not validated">!</span>
                   )}
                 </td>
                 <td className="speed-cell">
@@ -184,7 +172,7 @@ export default function ViolationsTable({ violations }) {
                 </td>
                 <td className="confidence-cell">
                   <div className="confidence-bar-container">
-                    <div 
+                    <div
                       className={`confidence-bar ${violation.plate_confidence < 0.7 ? 'low' : violation.plate_confidence < 0.85 ? 'medium' : 'high'}`}
                       style={{ width: `${violation.plate_confidence * 100}%` }}
                     />

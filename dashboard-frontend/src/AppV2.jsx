@@ -16,8 +16,8 @@ export default function AppV2() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
-  const enableV2 = 'true' // import.meta.env.VITE_ENABLE_V2 === 'true';
-  const enableAuth = 'true' // import.meta.env.VITE_ENABLE_AUTH === 'true';
+  const enableV2 = 'true'; // import.meta.env.VITE_ENABLE_V2 === 'true';
+  const enableAuth = 'true'; // import.meta.env.VITE_ENABLE_AUTH === 'true';
 
   useEffect(() => {
     if (enableAuth) {
@@ -63,18 +63,16 @@ export default function AppV2() {
       <header className="app-header">
         <div className="header-content">
           <h1 className="app-title">
-            <span className="title-icon">🚦</span>
+            <span className="title-icon"></span>
             Traffic Monitoring System
           </h1>
           <div className="version-badge">v2.0</div>
         </div>
-        <p className="app-subtitle">
-          AI-Powered Traffic Violation Detection
-        </p>
+        <p className="app-subtitle">AI-Powered Traffic Violation Detection</p>
         {enableAuth && user && (
           <div className="user-info">
-            <span>👤 {user.email}</span>
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
+            <span>{user.email}</span>
+            <button onClick={handleLogout} className="logout-btn">Sign out</button>
           </div>
         )}
       </header>
@@ -84,7 +82,7 @@ export default function AppV2() {
           className={`nav-btn ${currentView === 'upload' ? 'active' : ''}`}
           onClick={() => setCurrentView('upload')}
         >
-          📤 Upload
+          Upload
         </button>
         {enableV2 && (
           <>
@@ -92,13 +90,13 @@ export default function AppV2() {
               className={`nav-btn ${currentView === 'history' ? 'active' : ''}`}
               onClick={() => setCurrentView('history')}
             >
-              📜 History
+              History
             </button>
             <button
               className={`nav-btn ${currentView === 'stats' ? 'active' : ''}`}
               onClick={() => setCurrentView('stats')}
             >
-              📊 Statistics
+              Statistics
             </button>
           </>
         )}
@@ -109,23 +107,23 @@ export default function AppV2() {
           !data ? (
             <div className="upload-section">
               <div className="welcome-message">
-                <h2>Welcome to Traffic Monitoring</h2>
+                <h2>Traffic Video Analysis</h2>
                 <p>Upload a traffic video to detect vehicles, recognize license plates, and identify speed violations.</p>
                 <div className="features-list">
                   <div className="feature-item">
-                    <span className="feature-icon">🎯</span>
+                    <span className="feature-icon">01</span>
                     <span>Vehicle Detection</span>
                   </div>
                   <div className="feature-item">
-                    <span className="feature-icon">🔍</span>
-                    <span>License Plate OCR</span>
+                    <span className="feature-icon">02</span>
+                    <span>Plate OCR</span>
                   </div>
                   <div className="feature-item">
-                    <span className="feature-icon">📊</span>
+                    <span className="feature-icon">03</span>
                     <span>Speed Analysis</span>
                   </div>
                   <div className="feature-item">
-                    <span className="feature-icon">⚠️</span>
+                    <span className="feature-icon">04</span>
                     <span>Violation Detection</span>
                   </div>
                 </div>
@@ -140,7 +138,7 @@ export default function AppV2() {
                   <span className="video-name">{data.video_info.filename}</span>
                 </div>
                 <button onClick={handleReset} className="reset-button">
-                  🔄 New Analysis
+                  New Analysis
                 </button>
               </div>
 
@@ -152,8 +150,8 @@ export default function AppV2() {
                     className={`tab ${activeTab === 'violations' ? 'active' : ''}`}
                     onClick={() => setActiveTab('violations')}
                   >
-                    <span className="tab-icon">⚠️</span>
-                    <span>Violations</span>
+                    <span className="tab-icon"></span>
+                    Violations
                     {data.summary.violations_detected > 0 && (
                       <span className="tab-badge">{data.summary.violations_detected}</span>
                     )}
@@ -162,16 +160,16 @@ export default function AppV2() {
                     className={`tab ${activeTab === 'vehicles' ? 'active' : ''}`}
                     onClick={() => setActiveTab('vehicles')}
                   >
-                    <span className="tab-icon">🚗</span>
-                    <span>All Vehicles</span>
+                    <span className="tab-icon"></span>
+                    All Vehicles
                     <span className="tab-badge">{data.summary.total_vehicles_tracked}</span>
                   </button>
                   <button
                     className={`tab ${activeTab === 'raw' ? 'active' : ''}`}
                     onClick={() => setActiveTab('raw')}
                   >
-                    <span className="tab-icon">📝</span>
-                    <span>Raw Data</span>
+                    <span className="tab-icon"></span>
+                    Raw Data
                   </button>
                 </div>
 
@@ -181,16 +179,18 @@ export default function AppV2() {
                       {data.summary.violations_detected > 0 ? (
                         <>
                           <div className="panel-header">
-                            <h3>Detected Violations</h3>
-                            <p className="panel-description">
-                              {data.summary.violations_detected} vehicle{data.summary.violations_detected !== 1 ? 's' : ''} exceeded the speed limit of {data.configuration.speed_limit_kmh} km/h
-                            </p>
+                            <div>
+                              <h3>Detected Violations</h3>
+                              <p className="panel-description">
+                                {data.summary.violations_detected} vehicle{data.summary.violations_detected !== 1 ? 's' : ''} exceeded the speed limit of {data.configuration.speed_limit_kmh} km/h
+                              </p>
+                            </div>
                           </div>
                           <ViolationsTable violations={data.violations} />
                         </>
                       ) : (
                         <div className="empty-state success">
-                          <div className="empty-icon">✅</div>
+                          <div className="empty-icon">&#10003;</div>
                           <h3>No Violations Detected</h3>
                           <p>All vehicles were within the speed limit</p>
                         </div>
@@ -201,10 +201,12 @@ export default function AppV2() {
                   {activeTab === 'vehicles' && (
                     <div className="tab-panel">
                       <div className="panel-header">
-                        <h3>All Tracked Vehicles</h3>
-                        <p className="panel-description">
-                          Complete tracking data for all {data.summary.total_vehicles_tracked} detected vehicles
-                        </p>
+                        <div>
+                          <h3>All Tracked Vehicles</h3>
+                          <p className="panel-description">
+                            Complete tracking data for all {data.summary.total_vehicles_tracked} detected vehicles
+                          </p>
+                        </div>
                       </div>
                       <VehicleDetails vehicles={data.tracked_vehicles} />
                     </div>
@@ -221,7 +223,7 @@ export default function AppV2() {
                           }}
                           className="copy-button"
                         >
-                          📋 Copy to Clipboard
+                          Copy to Clipboard
                         </button>
                       </div>
                       <pre className="json-display">
@@ -245,7 +247,7 @@ export default function AppV2() {
       </main>
 
       <footer className="app-footer">
-        <p>Traffic Monitoring System v2.0 • Database & Authentication</p>
+        Traffic Monitoring System v2.0 &nbsp;·&nbsp; Database &amp; Authentication
       </footer>
     </div>
   );

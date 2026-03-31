@@ -82,9 +82,9 @@ services:
     
     volumes:
       # Optional: Mount models directory for easy updates
-      - ./ai-service/models:/app/models:ro
+      - ./ai-service/models:/app/models:Z
       # Optional: Persistent logs
-      - ai-logs:/app/logs
+      - ai-logs:/app/logs:Z
     
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]

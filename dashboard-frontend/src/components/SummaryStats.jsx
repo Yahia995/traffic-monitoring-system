@@ -20,27 +20,27 @@ export default function SummaryStats({ data }) {
 
   const stats = [
     {
-      icon: '🚗',
+      icon: 'VEH',
       label: 'Vehicles Tracked',
       value: summary.total_vehicles_tracked,
       color: 'blue'
     },
     {
-      icon: '🔢',
+      icon: 'PLT',
       label: 'Plates Detected',
       value: summary.vehicles_with_plates,
       subtitle: `${detectionRate}% detection rate`,
       color: 'green'
     },
     {
-      icon: '⚠️',
+      icon: 'VIO',
       label: 'Violations Found',
       value: summary.violations_detected,
       subtitle: `${violationRate}% violation rate`,
       color: summary.violations_detected > 0 ? 'red' : 'green'
     },
     {
-      icon: '📊',
+      icon: 'AVG',
       label: 'Average Speed',
       value: `${summary.average_speed_kmh.toFixed(1)} km/h`,
       subtitle: `Limit: ${configuration.speed_limit_kmh} km/h`,

@@ -12,15 +12,7 @@ export default function VehicleDetails({ vehicles }) {
     ? vehicles.filter(v => v.plate_info.validated)
     : vehicles;
 
-  const getStatusIcon = (vehicle) => {
-    if (vehicle.speed_info.is_violation) return '🚨';
-    if (vehicle.plate_info.plate_number) return '✅';
-    return '❓';
-  };
-
-  const formatTime = (seconds) => {
-    return `${seconds.toFixed(1)}s`;
-  };
+  const formatTime = (seconds) => `${seconds.toFixed(1)}s`;
 
   return (
     <div className="vehicle-details-section">
@@ -37,15 +29,15 @@ export default function VehicleDetails({ vehicles }) {
       </div>
 
       <div className="vehicles-grid">
-        {filteredVehicles.map((vehicle, index) => (
-          <div 
+        {filteredVehicles.map((vehicle) => (
+          <div
             key={vehicle.vehicle_id}
             className={`vehicle-card ${selectedVehicle === vehicle.vehicle_id ? 'selected' : ''} ${vehicle.speed_info.is_violation ? 'violation' : ''}`}
             onClick={() => setSelectedVehicle(selectedVehicle === vehicle.vehicle_id ? null : vehicle.vehicle_id)}
           >
             <div className="vehicle-header">
               <div className="vehicle-id">
-                <span className="status-icon">{getStatusIcon(vehicle)}</span>
+                <span className="status-icon"></span>
                 <span className="id-text">{vehicle.vehicle_id}</span>
               </div>
               {vehicle.speed_info.is_violation && (
@@ -61,12 +53,12 @@ export default function VehicleDetails({ vehicles }) {
                   </div>
                   <div className="plate-meta">
                     <span className={`confidence ${vehicle.plate_info.confidence < 0.7 ? 'low' : vehicle.plate_info.confidence < 0.85 ? 'medium' : 'high'}`}>
-                      {(vehicle.plate_info.confidence * 100).toFixed(0)}% confident
+                      {(vehicle.plate_info.confidence * 100).toFixed(0)}% conf.
                     </span>
                     {vehicle.plate_info.validated ? (
-                      <span className="validated">✓ Validated</span>
+                      <span className="validated">Validated</span>
                     ) : (
-                      <span className="unvalidated">⚠ Unvalidated</span>
+                      <span className="unvalidated">Unvalidated</span>
                     )}
                   </div>
                 </>
@@ -84,13 +76,13 @@ export default function VehicleDetails({ vehicles }) {
 
             <div className="vehicle-stats">
               <div className="stat-row">
-                <span className="stat-label">Speed:</span>
+                <span className="stat-label">Speed</span>
                 <span className={`stat-value ${vehicle.speed_info.is_violation ? 'violation-speed' : ''}`}>
                   {vehicle.speed_info.speed_kmh.toFixed(1)} km/h
                 </span>
               </div>
               <div className="stat-row">
-                <span className="stat-label">Tracked:</span>
+                <span className="stat-label">Tracked</span>
                 <span className="stat-value">
                   {vehicle.tracking_info.frames_tracked} frames
                 </span>
@@ -100,20 +92,20 @@ export default function VehicleDetails({ vehicles }) {
             {selectedVehicle === vehicle.vehicle_id && (
               <div className="vehicle-expanded">
                 <div className="divider"></div>
-                
+
                 <div className="detail-section">
                   <h4>Tracking Information</h4>
                   <div className="detail-grid">
                     <div className="detail-item">
-                      <span className="detail-label">First Frame:</span>
+                      <span className="detail-label">First Frame</span>
                       <span className="detail-value">{vehicle.tracking_info.first_frame}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="detail-label">Last Frame:</span>
+                      <span className="detail-label">Last Frame</span>
                       <span className="detail-value">{vehicle.tracking_info.last_frame}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="detail-label">Trajectory:</span>
+                      <span className="detail-label">Trajectory</span>
                       <span className="detail-value">
                         {vehicle.tracking_info.trajectory_length_pixels.toFixed(1)} px
                       </span>
@@ -126,12 +118,12 @@ export default function VehicleDetails({ vehicles }) {
                     <h4>Plate Information</h4>
                     <div className="detail-grid">
                       <div className="detail-item">
-                        <span className="detail-label">Raw OCR:</span>
+                        <span className="detail-label">Raw OCR</span>
                         <span className="detail-value">{vehicle.plate_info.raw_ocr_text}</span>
                       </div>
                       {vehicle.plate_info.corrections_applied && vehicle.plate_info.corrections_applied.length > 0 && (
                         <div className="detail-item">
-                          <span className="detail-label">Corrections:</span>
+                          <span className="detail-label">Corrections</span>
                           <span className="detail-value corrections">
                             {vehicle.plate_info.corrections_applied.join(', ')}
                           </span>
@@ -139,7 +131,7 @@ export default function VehicleDetails({ vehicles }) {
                       )}
                       {vehicle.plate_info.detection_frame && (
                         <div className="detail-item">
-                          <span className="detail-label">Detected at:</span>
+                          <span className="detail-label">Detected at</span>
                           <span className="detail-value">Frame {vehicle.plate_info.detection_frame}</span>
                         </div>
                       )}
@@ -158,7 +150,7 @@ export default function VehicleDetails({ vehicles }) {
                       ))}
                       {vehicle.positions.length > 5 && (
                         <div className="trajectory-more">
-                          ... and {vehicle.positions.length - 5} more points
+                          +{vehicle.positions.length - 5} more points
                         </div>
                       )}
                     </div>
